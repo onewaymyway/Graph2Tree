@@ -134,21 +134,24 @@ for num in generate_nums:
     generate_num_ids.append(output_lang.word2index[num])
 
 for epoch in range(n_epochs):
-    encoder_scheduler.step()
-    predict_scheduler.step()
-    generate_scheduler.step()
-    merge_scheduler.step()
+    #encoder_scheduler.step()
+    #predict_scheduler.step()
+    #generate_scheduler.step()
+    #merge_scheduler.step()
     loss_total = 0
     input_batches, input_lengths, output_batches, output_lengths, nums_batches, \
    num_stack_batches, num_pos_batches, num_size_batches, num_value_batches, graph_batches = prepare_train_batch(train_pairs, batch_size)
     print("epoch:", epoch + 1)
     start = time.time()
+    totallen=len(input_lengths)
     for idx in range(len(input_lengths)):
         loss = train_tree(
             input_batches[idx], input_lengths[idx], output_batches[idx], output_lengths[idx],
             num_stack_batches[idx], num_size_batches[idx], generate_num_ids, encoder, predict, generate, merge,
             encoder_optimizer, predict_optimizer, generate_optimizer, merge_optimizer, output_lang, num_pos_batches[idx], graph_batches[idx])
         loss_total += loss
+        if idx%5==0:
+          print("progress",idx,totallen,idx/totallen)
 
     print("loss:", loss_total / len(input_lengths))
     print("training time", time_since(time.time() - start))
