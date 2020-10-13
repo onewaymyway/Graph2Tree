@@ -366,7 +366,7 @@ def get_all_number_encoder_outputs(encoder_outputs, num_pos, batch_size, num_siz
         indices += [0 for _ in range(len(num_pos[b]), num_size)]
         masked_index += [temp_1 for _ in range(len(num_pos[b]), num_size)]
     indices = torch.LongTensor(indices)
-    masked_index = torch.ByteTensor(masked_index)
+    masked_index = torch.BoolTensor(masked_index)
     masked_index = masked_index.view(batch_size, num_size, hidden_size)
     if USE_CUDA:
         indices = indices.cuda()
@@ -385,7 +385,7 @@ def train_attn(input_batch, input_length, target_batch, target_length, num_batch
     max_len = max(input_length)
     for i in input_length:
         seq_mask.append([0 for _ in range(i)] + [1 for _ in range(i, max_len)])
-    seq_mask = torch.ByteTensor(seq_mask)
+    seq_mask = torch.BoolTensor(seq_mask)
 
     num_start = output_lang.n_words - copy_nums - 2
     unk = output_lang.word2index["UNK"]
@@ -528,7 +528,7 @@ def train_attn(input_batch, input_length, target_batch, target_length, num_batch
 
 def evaluate_attn(input_seq, input_length, num_list, copy_nums, generate_nums, encoder, decoder, output_lang,
                   beam_size=1, english=False, max_length=MAX_OUTPUT_LENGTH):
-    seq_mask = torch.ByteTensor(1, input_length).fill_(0)
+    seq_mask = torch.BoolTensor(1, input_length).fill_(0)
     num_start = output_lang.n_words - copy_nums - 2
 
     # Turn padded arrays into (batch_size x max_len) tensors, transpose into (max_len x batch_size)
@@ -638,6 +638,7 @@ class TreeEmbedding:  # the class save the tree
     def __init__(self, embedding, terminal=False):
         self.embedding = embedding
         self.terminal = terminal
+        #terminal
 
 
 def train_tree(input_batch, input_length, target_batch, target_length, nums_stack_batch, num_size_batch, generate_nums,
@@ -648,14 +649,14 @@ def train_tree(input_batch, input_length, target_batch, target_length, nums_stac
     max_len = max(input_length)
     for i in input_length:
         seq_mask.append([0 for _ in range(i)] + [1 for _ in range(i, max_len)])
-    seq_mask = torch.ByteTensor(seq_mask)
+    seq_mask = torch.BoolTensor(seq_mask)
 
     num_mask = []
     max_num_size = max(num_size_batch) + len(generate_nums)
     for i in num_size_batch:
         d = i + len(generate_nums)
         num_mask.append([0] * d + [1] * (max_num_size - d))
-    num_mask = torch.ByteTensor(num_mask)
+    num_mask = torch.BoolTensor(num_mask)
 
     unk = output_lang.word2index["UNK"]
 
@@ -771,12 +772,12 @@ def train_tree(input_batch, input_length, target_batch, target_length, nums_stac
 
 def evaluate_tree(input_batch, input_length, generate_nums, encoder, predict, generate, merge, output_lang, num_pos, batch_graph, beam_size=5, english=False, max_length=MAX_OUTPUT_LENGTH):
 
-    seq_mask = torch.ByteTensor(1, input_length).fill_(0)
+    seq_mask = torch.BoolTensor(1, input_length).fill_(0)
     # Turn padded arrays into (batch_size x max_len) tensors, transpose into (max_len x batch_size)
     input_var = torch.LongTensor(input_batch).unsqueeze(1)
     batch_graph = torch.LongTensor(batch_graph)
 
-    num_mask = torch.ByteTensor(1, len(num_pos) + len(generate_nums)).fill_(0)
+    num_mask = torch.BoolTensor(1, len(num_pos) + len(generate_nums)).fill_(0)
 
     # Set to not-training mode to disable dropout
     encoder.eval()
@@ -905,14 +906,14 @@ def topdown_train_tree(input_batch, input_length, target_batch, target_length, n
     max_len = max(input_length)
     for i in input_length:
         seq_mask.append([0 for _ in range(i)] + [1 for _ in range(i, max_len)])
-    seq_mask = torch.ByteTensor(seq_mask)
+    seq_mask = torch.BoolTensor(seq_mask)
 
     num_mask = []
     max_num_size = max(num_size_batch) + len(generate_nums)
     for i in num_size_batch:
         d = i + len(generate_nums)
         num_mask.append([0] * d + [1] * (max_num_size - d))
-    num_mask = torch.ByteTensor(num_mask)
+    num_mask = torch.BoolTensor(num_mask)
 
     unk = output_lang.word2index["UNK"]
 
@@ -1009,11 +1010,11 @@ def topdown_train_tree(input_batch, input_length, target_batch, target_length, n
 def topdown_evaluate_tree(input_batch, input_length, generate_nums, encoder, predict, generate, output_lang, num_pos,
                           beam_size=5, english=False, max_length=MAX_OUTPUT_LENGTH):
 
-    seq_mask = torch.ByteTensor(1, input_length).fill_(0)
+    seq_mask = torch.BoolTensor(1, input_length).fill_(0)
     # Turn padded arrays into (batch_size x max_len) tensors, transpose into (max_len x batch_size)
     input_var = torch.LongTensor(input_batch).unsqueeze(1)
 
-    num_mask = torch.ByteTensor(1, len(num_pos) + len(generate_nums)).fill_(0)
+    num_mask = torch.BoolTensor(1, len(num_pos) + len(generate_nums)).fill_(0)
 
     # Set to not-training mode to disable dropout
     encoder.eval()
