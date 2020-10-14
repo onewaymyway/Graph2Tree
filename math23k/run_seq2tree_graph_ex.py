@@ -35,8 +35,8 @@ n_layers = 2
 ori_path = './data/'
 prefix = '23k_processed.json'
 
-if_train = args.is_train
-if_eval = args.is_eval
+if_train = args.if_train
+if_eval = args.if_eval
 
 
 
