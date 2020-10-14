@@ -85,10 +85,10 @@ def load_pre_params():
         generate.load_state_dict(torch.load("model_traintest/generate"))
         merge.load_state_dict(torch.load("model_traintest/merge"))
     else:
-        encoder.load_state_dict(torch.load("model_traintest/encoder"),map_location=torch.device('cpu'))
-        predict.load_state_dict(torch.load("model_traintest/predict"),map_location=torch.device('cpu'))
-        generate.load_state_dict(torch.load("model_traintest/generate"),map_location=torch.device('cpu'))
-        merge.load_state_dict(torch.load("model_traintest/merge"),map_location=torch.device('cpu'))
+        encoder.load_state_dict(torch.load("model_traintest/encoder",map_location=torch.device('cpu')))
+        predict.load_state_dict(torch.load("model_traintest/predict",map_location=torch.device('cpu')))
+        generate.load_state_dict(torch.load("model_traintest/generate",map_location=torch.device('cpu')))
+        merge.load_state_dict(torch.load("model_traintest/merge",map_location=torch.device('cpu')))
 
 
 def save_params():
