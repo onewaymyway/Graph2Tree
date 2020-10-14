@@ -14,6 +14,8 @@ parser.add_argument("--if_train", type=ast.literal_eval, default=True, help="if_
 parser.add_argument("--if_eval", type=ast.literal_eval, default=True, help="if_eval")
 args = parser.parse_args()
 
+pring("args",args)
+
 
 def read_json(path):
     with open(path, 'r') as f:
