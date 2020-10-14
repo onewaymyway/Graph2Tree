@@ -25,6 +25,10 @@ n_layers = 2
 ori_path = './data/'
 prefix = '23k_processed.json'
 
+if_train = False
+if_eval = True
+
+
 
 def get_train_test_fold(ori_path, prefix, data, pairs, group):
     mode_train = 'train'
@@ -74,6 +78,7 @@ def change_num(num):
 
 
 def load_pre_params():
+    print("load_pre_params")
     encoder.load_state_dict(torch.load("model_traintest/encoder"))
     predict.load_state_dict(torch.load("model_traintest/predict"))
     generate.load_state_dict(torch.load("model_traintest/generate"))
@@ -81,6 +86,7 @@ def load_pre_params():
 
 
 def save_params():
+    print("save_params")
     torch.save(encoder.state_dict(), "model_traintest/encoder")
     torch.save(predict.state_dict(), "model_traintest/predict")
     torch.save(generate.state_dict(), "model_traintest/generate")
@@ -139,6 +145,9 @@ predict_scheduler = torch.optim.lr_scheduler.StepLR(predict_optimizer, step_size
 generate_scheduler = torch.optim.lr_scheduler.StepLR(generate_optimizer, step_size=20, gamma=0.5)
 merge_scheduler = torch.optim.lr_scheduler.StepLR(merge_optimizer, step_size=20, gamma=0.5)
 
+if not if_train:
+    load_pre_params()
+
 # Move models to GPU
 if USE_CUDA:
     encoder.cuda()
@@ -152,6 +161,7 @@ for num in generate_nums:
 
 
 def do_eval():
+    print("do_eval")
     value_ac = 0
     equation_ac = 0
     eval_total = 0
@@ -219,8 +229,7 @@ def do_train():
     print(a / float(c), b / float(c))
 
 
-if_train = False
-if_eval = True
+
 
 if if_train:
     do_train()
