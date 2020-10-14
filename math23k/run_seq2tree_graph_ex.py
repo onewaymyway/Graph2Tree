@@ -5,6 +5,14 @@ import time
 import torch.optim
 from src.expressions_transfer import *
 import json
+import argparse
+import ast
+
+parser = argparse.ArgumentParser(__doc__)
+
+parser.add_argument("--if_train", type=ast.literal_eval, default=True, help="if_train")
+parser.add_argument("--if_eval", type=ast.literal_eval, default=True, help="if_eval")
+args = parser.parse_args()
 
 
 def read_json(path):
@@ -25,8 +33,8 @@ n_layers = 2
 ori_path = './data/'
 prefix = '23k_processed.json'
 
-if_train = False
-if_eval = True
+if_train = args.is_train
+if_eval = args.is_eval
 
 
 
