@@ -78,11 +78,17 @@ def change_num(num):
 
 
 def load_pre_params():
-    print("load_pre_params")
-    encoder.load_state_dict(torch.load("model_traintest/encoder"))
-    predict.load_state_dict(torch.load("model_traintest/predict"))
-    generate.load_state_dict(torch.load("model_traintest/generate"))
-    merge.load_state_dict(torch.load("model_traintest/merge"))
+    print("load_pre_params",USE_CUDA)
+    if USE_CUDA:
+        encoder.load_state_dict(torch.load("model_traintest/encoder"))
+        predict.load_state_dict(torch.load("model_traintest/predict"))
+        generate.load_state_dict(torch.load("model_traintest/generate"))
+        merge.load_state_dict(torch.load("model_traintest/merge"))
+    else:
+        encoder.load_state_dict(torch.load("model_traintest/encoder"),map_location='cpu')
+        predict.load_state_dict(torch.load("model_traintest/predict"),map_location='cpu')
+        generate.load_state_dict(torch.load("model_traintest/generate"),map_location='cpu')
+        merge.load_state_dict(torch.load("model_traintest/merge"),map_location='cpu')
 
 
 def save_params():
