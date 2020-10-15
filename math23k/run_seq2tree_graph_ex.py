@@ -118,6 +118,7 @@ pairs, generate_nums, copy_nums = transfer_num(data)
 
 temp_pairs = []
 for p in pairs:
+    # [句子，表达式，数字列表,数字起始位置]
     temp_pairs.append((p[0], from_infix_to_prefix(p[1]), p[2], p[3]))
 pairs = temp_pairs
 
