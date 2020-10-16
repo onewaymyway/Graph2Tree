@@ -204,15 +204,15 @@ def build_models(model_info):
     model_info.merge = Merge(hidden_size=hidden_size, embedding_size=embedding_size)
     # the embedding layer is  only for generated number embeddings, operators, and paddings
 
-    model_info.encoder_optimizer = torch.optim.Adam(encoder.parameters(), lr=learning_rate, weight_decay=weight_decay)
-    model_info.predict_optimizer = torch.optim.Adam(predict.parameters(), lr=learning_rate, weight_decay=weight_decay)
-    model_info.generate_optimizer = torch.optim.Adam(generate.parameters(), lr=learning_rate, weight_decay=weight_decay)
-    model_info.merge_optimizer = torch.optim.Adam(merge.parameters(), lr=learning_rate, weight_decay=weight_decay)
+    model_info.encoder_optimizer = torch.optim.Adam(model_info.encoder.parameters(), lr=learning_rate, weight_decay=weight_decay)
+    model_info.predict_optimizer = torch.optim.Adam(model_info.predict.parameters(), lr=learning_rate, weight_decay=weight_decay)
+    model_info.generate_optimizer = torch.optim.Adam(model_info.generate.parameters(), lr=learning_rate, weight_decay=weight_decay)
+    model_info.merge_optimizer = torch.optim.Adam(model_info.merge.parameters(), lr=learning_rate, weight_decay=weight_decay)
 
-    model_info.encoder_scheduler = torch.optim.lr_scheduler.StepLR(encoder_optimizer, step_size=20, gamma=0.5)
-    model_info.predict_scheduler = torch.optim.lr_scheduler.StepLR(predict_optimizer, step_size=20, gamma=0.5)
-    model_info.generate_scheduler = torch.optim.lr_scheduler.StepLR(generate_optimizer, step_size=20, gamma=0.5)
-    model_info.merge_scheduler = torch.optim.lr_scheduler.StepLR(merge_optimizer, step_size=20, gamma=0.5)
+    model_info.encoder_scheduler = torch.optim.lr_scheduler.StepLR(model_info.encoder_optimizer, step_size=20, gamma=0.5)
+    model_info.predict_scheduler = torch.optim.lr_scheduler.StepLR(model_info.predict_optimizer, step_size=20, gamma=0.5)
+    model_info.generate_scheduler = torch.optim.lr_scheduler.StepLR(model_info.generate_optimizer, step_size=20, gamma=0.5)
+    model_info.merge_scheduler = torch.optim.lr_scheduler.StepLR(model_info.merge_optimizer, step_size=20, gamma=0.5)
 
     return model_info
 
