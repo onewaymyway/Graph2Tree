@@ -138,7 +138,7 @@ pairs_trained = train_fold
 #    else:
 #        pairs_trained += fold_pairs[fold_t]
 model_info=ModelInfo()
-model_info.build_lang(pairs_trained,5, generate_nums,copy_nums,True)
+input_lang, output_lang=model_info.build_lang(pairs_trained,5, generate_nums,copy_nums,True)
 train_pairs=model_info.build_langed_pairs(pairs_trained,"train")
 test_pairs=model_info.build_langed_pairs(pairs_tested,"test")
 #input_lang, output_lang, train_pairs, test_pairs = prepare_data(pairs_trained, pairs_tested, 5, generate_nums,copy_nums, tree=True)

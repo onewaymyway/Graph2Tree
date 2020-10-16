@@ -112,6 +112,8 @@ class ModelInfo:
         self.input_lang=input_lang
         self.output_lang=output_lang
 
+        return input_lang,output_lang
+
 
     def build_langed_pairs(self,pairs_trained, sign="train"):
         print("build_langed_pairs", sign)
