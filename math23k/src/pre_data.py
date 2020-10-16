@@ -3,6 +3,7 @@ import json
 import copy
 import re
 import numpy as np
+from aiutils.fileutils import saveJsonFile,readJsonFile
 
 PAD_token = 0
 
@@ -18,6 +19,22 @@ class Lang:
         self.index2word = []
         self.n_words = 0  # Count word tokens
         self.num_start = 0
+
+    def get_data(self):
+        rst={}
+        rst["word2index"]=self.word2index
+        rst["word2count"] = self.word2count
+        rst["index2word"] = self.index2word
+        rst["n_words"] = self.n_words
+        rst["num_start"] = self.num_start
+        return rst
+
+    def recover_from_data(self,data):
+        self.word2index=data["word2index"]
+        self.word2count = data["word2count"]
+        self.index2word = data["index2word"]
+        self.n_words = data["n_words"]
+        self.num_start = data["num_start"]
 
     def add_sen_to_vocab(self, sentence):  # add words of sentence to vocab
         for word in sentence:
@@ -87,6 +104,48 @@ class ModelInfo:
         self.input_lang=None
         self.output_lang=None
         self.tree=False
+        self.base_path=""
+        self.lang_path=""
+        self.trim_min_count = 4
+        self.generate_nums = 0
+        self.copy_nums = 0
+
+    def set_base_path(self,file_path):
+        self.base_path=file_path
+        self.lang_path=file_path+"/lang.json"
+
+    def save_lang(self):
+
+        lang_data={}
+        lang_data["input_lang"]=self.input_lang.get_data()
+        lang_data["output_lang"] = self.output_lang.get_data()
+        lang_data["tree"]=self.tree
+        lang_data["trim_min_count"] = self.trim_min_count
+        lang_data["generate_nums"] = self.generate_nums
+        lang_data["copy_nums"] = self.copy_nums
+
+        saveJsonFile(self.lang_path,lang_data)
+
+
+    def recover_lang(self):
+        lang_data=readJsonFile(self.lang_path)
+        self.tree=lang_data["tree"]
+        self.trim_min_count = lang_data["trim_min_count"]
+        self.generate_nums = lang_data["generate_nums"]
+        self.copy_nums = lang_data["copy_nums"]
+
+        input_lang = Lang()
+        output_lang = Lang()
+
+        input_lang.recover_from_data(lang_data["input_lang"])
+        output_lang.recover_from_data(output_lang["input_lang"])
+
+        self.input_lang=input_lang
+        self.output_lang = output_lang
+
+        return input_lang,output_lang
+
+        #recover_from_data
 
     def build_lang(self,pairs, trim_min_count, generate_nums, copy_nums, tree):
         input_lang = Lang()
