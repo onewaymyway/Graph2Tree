@@ -138,7 +138,7 @@ def build_math23k_data():
 
     data_set["generate_nums"]=generate_nums
     data_set["copy_nums"] = copy_nums
-    data_set["train_fold"] = generate_nums
+    data_set["train_fold"] = train_fold
     data_set["test_fold"] = test_fold
     data_set["valid_fold"] = valid_fold
 
