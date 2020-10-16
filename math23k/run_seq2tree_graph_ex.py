@@ -324,6 +324,12 @@ def do_eval():
 
     return equation_ac, value_ac, eval_total
 
+def batch_creator(datas,batchsize):
+    start=0
+    total=len(datas)
+    while start<total:
+        yield datas[start:start+batchsize]
+        start+=batchsize
 
 def do_train():
     for epoch in range(n_epochs):
@@ -331,26 +337,44 @@ def do_train():
         # predict_scheduler.step()
         # generate_scheduler.step()
         # merge_scheduler.step()
-        loss_total = 0
-        input_batches, input_lengths, output_batches, output_lengths, nums_batches, \
-        num_stack_batches, num_pos_batches, num_size_batches, num_value_batches, graph_batches = prepare_train_batch(
-            train_pairs, batch_size)
-        print("epoch:", epoch + 1)
-        start = time.time()
-        totallen = len(input_lengths)
-        for idx in range(len(input_lengths)):
-            loss = train_tree(
-                input_batches[idx], input_lengths[idx], output_batches[idx], output_lengths[idx],
-                num_stack_batches[idx], num_size_batches[idx], generate_num_ids, encoder, predict, generate, merge,
-                encoder_optimizer, predict_optimizer, generate_optimizer, merge_optimizer, output_lang,
-                num_pos_batches[idx], graph_batches[idx])
-            loss_total += loss
-            if idx % 5 == 0:
-                print("progress", idx, totallen, idx / totallen)
 
-        print("loss:", loss_total / len(input_lengths))
-        print("training time", time_since(time.time() - start))
-        print("--------------------------------")
+
+        print("epoch:", epoch + 1)
+
+
+        step_batch_count=100
+        step_count=step_batch_count*step_batch_count
+
+        train_big_batch=batch_creator(train_pairs,step_count)
+
+        train_step=0
+        total_step=len(train_pairs)
+
+        for train_small in train_big_batch:
+
+            train_step+=step_count
+
+            start = time.time()
+            loss_total = 0
+            input_batches, input_lengths, output_batches, output_lengths, nums_batches, \
+                num_stack_batches, num_pos_batches, num_size_batches, num_value_batches, graph_batches = prepare_train_batch(
+                    train_small, batch_size)
+
+            totallen = len(input_lengths)
+            for idx in range(len(input_lengths)):
+                loss = train_tree(
+                    input_batches[idx], input_lengths[idx], output_batches[idx], output_lengths[idx],
+                    num_stack_batches[idx], num_size_batches[idx], generate_num_ids, encoder, predict, generate, merge,
+                    encoder_optimizer, predict_optimizer, generate_optimizer, merge_optimizer, output_lang,
+                    num_pos_batches[idx], graph_batches[idx])
+                loss_total += loss
+                if idx % 5 == 0:
+                    print("progress", idx, totallen, idx / totallen)
+
+            print("loss:", loss_total / len(input_lengths))
+            print("training time", time_since(time.time() - start))
+            print("progress_big:",train_step,total_step,train_step/total_step)
+            print("--------------------------------")
         if epoch % 2 == 0 or epoch > n_epochs - 5:
 
             equation_ac, value_ac, eval_total = do_eval()
