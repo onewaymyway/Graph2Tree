@@ -117,6 +117,7 @@ class ModelInfo:
         print("build_langed_pairs", sign)
         input_lang, output_lang=self.input_lang,self.output_lang
         tree=self.tree
+        train_pairs=[]
         for pair in pairs_trained:
             num_stack = []
             for word in pair[1]:
