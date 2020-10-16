@@ -164,6 +164,7 @@ def build_ape_data():
     data = tests + trains + valids
 
     pairs, generate_nums, copy_nums = transfer_num(data,1000)
+    generate_nums=["1","3.14","2","12","60","10","100","1000","7"]
 
     temp_pairs = []
     for p in pairs:
@@ -219,8 +220,11 @@ else:
 
 #print("out_lang",output_lang)
 
+print("build train_pairs")
 train_pairs = model_info.build_langed_pairs(pairs_trained, "train")
+print("build test_pairs")
 test_pairs = model_info.build_langed_pairs(pairs_tested, "test")
+print("build pairs complete")
 # input_lang, output_lang, train_pairs, test_pairs = prepare_data(pairs_trained, pairs_tested, 5, generate_nums,copy_nums, tree=True)
 
 # print('train_pairs[0]')
@@ -267,6 +271,7 @@ def build_models(model_info):
 
 
 build_models(model_info)
+print("build model complete")
 
 encoder = model_info.encoder
 predict = model_info.predict
