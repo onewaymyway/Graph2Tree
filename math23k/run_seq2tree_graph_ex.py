@@ -163,7 +163,7 @@ def build_ape_data():
 
     data = tests + trains + valids
 
-    pairs, generate_nums, copy_nums = transfer_num(data)
+    pairs, generate_nums, copy_nums = transfer_num(data,1000)
 
     temp_pairs = []
     for p in pairs:

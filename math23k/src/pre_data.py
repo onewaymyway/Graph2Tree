@@ -414,7 +414,7 @@ def load_roth_data(filename):  # load the json data to dict(dict()) for roth dat
 #     return test_str
 
 
-def transfer_num(data):  # transfer num into "NUM"
+def transfer_num(data,num_limit=5):  # transfer num into "NUM"
     print("Transfer numbers...")
     pattern = re.compile("\d*\(\d+/\d+\)\d*|\d+\.\d+%?|\d+%?")
     pairs = []
@@ -498,7 +498,7 @@ def transfer_num(data):  # transfer num into "NUM"
     temp_g = []
     print("generate_num_dic",generate_nums_dict)
     for g in generate_nums:
-        if generate_nums_dict[g] >= 5:
+        if generate_nums_dict[g] >= num_limit:
             temp_g.append(g)
     return pairs, temp_g, copy_nums
 
