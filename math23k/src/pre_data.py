@@ -11,6 +11,7 @@ class Lang:
     """
     class to save the vocab and two dict: the word->index and index->word
     """
+
     def __init__(self):
         self.word2index = {}
         self.word2count = {}
@@ -64,7 +65,7 @@ class Lang:
             self.word2index[j] = i
 
     def build_output_lang(self, generate_num, copy_nums):  # build the output lang vocab and dict
-        self.index2word = ["PAD", "EOS"] + self.index2word + generate_num + ["N" + str(i) for i in range(copy_nums)] +\
+        self.index2word = ["PAD", "EOS"] + self.index2word + generate_num + ["N" + str(i) for i in range(copy_nums)] + \
                           ["SOS", "UNK"]
         self.n_words = len(self.index2word)
         for i, j in enumerate(self.index2word):
@@ -80,6 +81,66 @@ class Lang:
             self.word2index[j] = i
 
 
+class ModelInfo:
+
+    def __init__(self):
+        self.input_lang=None
+        self.output_lang=None
+        self.tree=tree
+
+    def build_lang(self,pairs, trim_min_count, generate_nums, copy_nums, tree):
+        input_lang = Lang()
+        output_lang = Lang()
+        self.tree=tree
+
+        print("Indexing words...")
+        for pair in pairs:
+            if not tree:
+                input_lang.add_sen_to_vocab(pair[0])
+                output_lang.add_sen_to_vocab(pair[1])
+            elif pair[-1]:
+                input_lang.add_sen_to_vocab(pair[0])
+                output_lang.add_sen_to_vocab(pair[1])
+        input_lang.build_input_lang(trim_min_count)
+        if tree:
+            output_lang.build_output_lang_for_tree(generate_nums, copy_nums)
+        else:
+            output_lang.build_output_lang(generate_nums, copy_nums)
+        self.input_lang=input_lang
+        self.output_lang=output_lang
+
+
+    def build_langed_pairs(self,train_pairs, sign="train"):
+        print("build_langed_pairs", sign)
+        input_lang, output_lang=self.input_lang,output_lang
+        tree=self.tree
+        for pair in pairs_trained:
+            num_stack = []
+            for word in pair[1]:
+                temp_num = []
+                flag_not = True
+                if word not in output_lang.index2word:
+                    flag_not = False
+                    for i, j in enumerate(pair[2]):
+                        if j == word:
+                            temp_num.append(i)
+
+                if not flag_not and len(temp_num) != 0:
+                    num_stack.append(temp_num)
+                if not flag_not and len(temp_num) == 0:
+                    num_stack.append([_ for _ in range(len(pair[2]))])
+
+            num_stack.reverse()
+            input_cell = indexes_from_sentence(input_lang, pair[0])
+            output_cell = indexes_from_sentence(output_lang, pair[1], tree)
+            # train_pairs.append((input_cell, len(input_cell), output_cell, len(output_cell),
+            #                     pair[2], pair[3], num_stack, pair[4]))
+            train_pairs.append((input_cell, len(input_cell), output_cell, len(output_cell),
+                                pair[2], pair[3], num_stack, pair[4]))
+        print('Indexed %d words in input language, %d words in output' % (input_lang.n_words, output_lang.n_words))
+        print('Number of training data %d' % (len(train_pairs)))
+
+        return train_pairs
 def load_raw_data(filename):  # load the json data to list(dict()) for MATH 23K
     print("Reading lines...")
     f = open(filename, encoding="utf-8")
@@ -130,16 +191,16 @@ def load_mawps_data(filename):  # load the json data to list(dict()) for MAWPS
 
         if "lQueryVars" in d and len(d["lQueryVars"]) == 1:
             v = d["lQueryVars"][0]
-            if v + "=" == x[:len(v)+1]:
-                xt = x[len(v)+1:]
+            if v + "=" == x[:len(v) + 1]:
+                xt = x[len(v) + 1:]
                 if len(set(xt) - set("0123456789.+-*/()")) == 0:
                     temp = d.copy()
                     temp["lEquations"] = xt
                     out_data.append(temp)
                     continue
 
-            if "=" + v == x[-len(v)-1:]:
-                xt = x[:-len(v)-1]
+            if "=" + v == x[-len(v) - 1:]:
+                xt = x[:-len(v) - 1]
                 if len(set(xt) - set("0123456789.+-*/()")) == 0:
                     temp = d.copy()
                     temp["lEquations"] = xt
@@ -176,8 +237,8 @@ def load_roth_data(filename):  # load the json data to dict(dict()) for roth dat
 
         if "lQueryVars" in d and len(d["lQueryVars"]) == 1:
             v = d["lQueryVars"][0]
-            if v + "=" == x[:len(v)+1]:
-                xt = x[len(v)+1:]
+            if v + "=" == x[:len(v) + 1]:
+                xt = x[len(v) + 1:]
                 if len(set(xt) - set("0123456789.+-*/()")) == 0:
                     temp = d.copy()
                     temp["lEquations"] = remove_brackets(xt)
@@ -193,8 +254,8 @@ def load_roth_data(filename):  # load the json data to dict(dict()) for roth dat
                     out_data[temp["iIndex"]] = temp
                     continue
 
-            if "=" + v == x[-len(v)-1:]:
-                xt = x[:-len(v)-1]
+            if "=" + v == x[-len(v) - 1:]:
+                xt = x[:-len(v) - 1]
                 if len(set(xt) - set("0123456789.+-*/()")) == 0:
                     temp = d.copy()
                     temp["lEquations"] = remove_brackets(xt)
@@ -244,6 +305,7 @@ def load_roth_data(filename):  # load the json data to dict(dict()) for roth dat
                 out_data[temp["iIndex"]] = temp
                 continue
     return out_data
+
 
 # for testing equation
 # def out_equation(test, num_list):
@@ -307,7 +369,7 @@ def transfer_num(data):  # transfer num into "NUM"
                     if p_start > 0:
                         res += seg_and_tag(st[:p_start])
                     if nums.count(n) == 1:
-                        res.append("N"+str(nums.index(n)))
+                        res.append("N" + str(nums.index(n)))
                     else:
                         res.append(n)
                     if p_end < len(st):
@@ -321,7 +383,7 @@ def transfer_num(data):  # transfer num into "NUM"
                     res += seg_and_tag(st[:p_start])
                 st_num = st[p_start:p_end]
                 if nums.count(st_num) == 1:
-                    res.append("N"+str(nums.index(st_num)))
+                    res.append("N" + str(nums.index(st_num)))
                 else:
                     res.append(st_num)
                 if p_end < len(st):
@@ -409,7 +471,7 @@ def transfer_english_num(data):  # transfer num into "NUM"
                         generate_nums[temp_eq] = 0
                     eq_segs.append(temp_eq)
                 elif len(count_eq) == 1:
-                    eq_segs.append("N"+str(count_eq[0]))
+                    eq_segs.append("N" + str(count_eq[0]))
                 else:
                     eq_segs.append(temp_eq)
                 eq_segs.append(e)
@@ -538,7 +600,7 @@ def transfer_roth_num(data):  # transfer num into "NUM"
                         generate_nums[temp_eq] = 0
                     eq_segs.append(temp_eq)
                 elif len(count_eq) == 1:
-                    eq_segs.append("N"+str(count_eq[0]))
+                    eq_segs.append("N" + str(count_eq[0]))
                 else:
                     eq_segs.append(temp_eq)
                 eq_segs.append(e)
@@ -626,6 +688,8 @@ def indexes_from_sentence(lang, sentence, tree=False):
     return res
 
 
+
+
 def prepare_data(pairs_trained, pairs_tested, trim_min_count, generate_nums, copy_nums, tree=False):
     input_lang = Lang()
     output_lang = Lang()
@@ -693,7 +757,7 @@ def prepare_data(pairs_trained, pairs_tested, trim_min_count, generate_nums, cop
         # train_pairs.append((input_cell, len(input_cell), output_cell, len(output_cell),
         #                     pair[2], pair[3], num_stack, pair[4]))
         test_pairs.append((input_cell, len(input_cell), output_cell, len(output_cell),
-                           pair[2], pair[3], num_stack,pair[4]))
+                           pair[2], pair[3], num_stack, pair[4]))
     print('Number of testind data %d' % (len(test_pairs)))
     return input_lang, output_lang, train_pairs, test_pairs
 
@@ -796,6 +860,7 @@ def pad_seq(seq, seq_len, max_length):
     seq += [PAD_token for _ in range(max_length - seq_len)]
     return seq
 
+
 def change_num(num):
     new_num = []
     for item in num:
@@ -804,17 +869,18 @@ def change_num(num):
             new_str = new_str.split('(')[1]
             a = float(new_str.split('/')[0])
             b = float(new_str.split('/')[1])
-            value = a/b
+            value = a / b
             new_num.append(value)
         elif '%' in item:
-            value = float(item[0:-1])/100
+            value = float(item[0:-1]) / 100
             new_num.append(value)
         else:
             new_num.append(float(item))
     return new_num
 
+
 # num net graph
-def get_lower_num_graph(max_len, sentence_length, num_list, id_num_list,contain_zh_flag=True):
+def get_lower_num_graph(max_len, sentence_length, num_list, id_num_list, contain_zh_flag=True):
     diag_ele = np.zeros(max_len)
     num_list = change_num(num_list)
     for i in range(sentence_length):
@@ -830,7 +896,8 @@ def get_lower_num_graph(max_len, sentence_length, num_list, id_num_list,contain_
                 graph[id_num_list[j]][id_num_list[i]] = 1
     return graph
 
-def get_greater_num_graph(max_len, sentence_length, num_list, id_num_list,contain_zh_flag=True):
+
+def get_greater_num_graph(max_len, sentence_length, num_list, id_num_list, contain_zh_flag=True):
     diag_ele = np.zeros(max_len)
     num_list = change_num(num_list)
     for i in range(sentence_length):
@@ -846,18 +913,20 @@ def get_greater_num_graph(max_len, sentence_length, num_list, id_num_list,contai
                 graph[id_num_list[j]][id_num_list[i]] = 1
     return graph
 
+
 # attribute between graph
-def get_attribute_between_graph(input_batch, max_len, id_num_list, sentence_length, quantity_cell_list,contain_zh_flag=True):
+def get_attribute_between_graph(input_batch, max_len, id_num_list, sentence_length, quantity_cell_list,
+                                contain_zh_flag=True):
     diag_ele = np.zeros(max_len)
     for i in range(sentence_length):
         diag_ele[i] = 1
     graph = np.diag(diag_ele)
-    #quantity_cell_list = quantity_cell_list.extend(id_num_list)
+    # quantity_cell_list = quantity_cell_list.extend(id_num_list)
     if not contain_zh_flag:
         return graph
     for i in id_num_list:
         for j in quantity_cell_list:
-            if i < max_len and j < max_len and j not in id_num_list and abs(i-j) < 4:
+            if i < max_len and j < max_len and j not in id_num_list and abs(i - j) < 4:
                 graph[i][j] = 1
                 graph[j][i] = 1
     for i in quantity_cell_list:
@@ -868,18 +937,19 @@ def get_attribute_between_graph(input_batch, max_len, id_num_list, sentence_leng
                     graph[j][i] = 1
     return graph
 
+
 # quantity between graph
-def get_quantity_between_graph(max_len, id_num_list, sentence_length, quantity_cell_list,contain_zh_flag=True):
+def get_quantity_between_graph(max_len, id_num_list, sentence_length, quantity_cell_list, contain_zh_flag=True):
     diag_ele = np.zeros(max_len)
     for i in range(sentence_length):
         diag_ele[i] = 1
     graph = np.diag(diag_ele)
-    #quantity_cell_list = quantity_cell_list.extend(id_num_list)
+    # quantity_cell_list = quantity_cell_list.extend(id_num_list)
     if not contain_zh_flag:
         return graph
     for i in id_num_list:
         for j in quantity_cell_list:
-            if i < max_len and j < max_len and j not in id_num_list and abs(i-j) < 4:
+            if i < max_len and j < max_len and j not in id_num_list and abs(i - j) < 4:
                 graph[i][j] = 1
                 graph[j][i] = 1
     for i in id_num_list:
@@ -888,23 +958,25 @@ def get_quantity_between_graph(max_len, id_num_list, sentence_length, quantity_c
             graph[j][i] = 1
     return graph
 
+
 # quantity cell graph
-def get_quantity_cell_graph(max_len, id_num_list, sentence_length, quantity_cell_list,contain_zh_flag=True):
+def get_quantity_cell_graph(max_len, id_num_list, sentence_length, quantity_cell_list, contain_zh_flag=True):
     diag_ele = np.zeros(max_len)
     for i in range(sentence_length):
         diag_ele[i] = 1
     graph = np.diag(diag_ele)
-    #quantity_cell_list = quantity_cell_list.extend(id_num_list)
+    # quantity_cell_list = quantity_cell_list.extend(id_num_list)
     if not contain_zh_flag:
         return graph
     for i in id_num_list:
         for j in quantity_cell_list:
-            if i < max_len and j < max_len and j not in id_num_list and abs(i-j) < 4:
+            if i < max_len and j < max_len and j not in id_num_list and abs(i - j) < 4:
                 graph[i][j] = 1
                 graph[j][i] = 1
     return graph
 
-def get_single_batch_graph(input_batch, input_length,group,num_value,num_pos):
+
+def get_single_batch_graph(input_batch, input_length, group, num_value, num_pos):
     batch_graph = []
     max_len = max(input_length)
     for i in range(len(input_length)):
@@ -917,14 +989,17 @@ def get_single_batch_graph(input_batch, input_length,group,num_value,num_pos):
         graph_greater = get_greater_num_graph(max_len, sentence_length, num_list, id_num_list)
         graph_lower = get_lower_num_graph(max_len, sentence_length, num_list, id_num_list)
         graph_quanbet = get_quantity_between_graph(max_len, id_num_list, sentence_length, quantity_cell_list)
-        graph_attbet = get_attribute_between_graph(input_batch_t, max_len, id_num_list, sentence_length, quantity_cell_list)
-        #graph_newc1 = get_quantity_graph1(input_batch_t, max_len, id_num_list, sentence_length, quantity_cell_list)
-        graph_total = [graph_newc.tolist(),graph_greater.tolist(),graph_lower.tolist(),graph_quanbet.tolist(),graph_attbet.tolist()]
+        graph_attbet = get_attribute_between_graph(input_batch_t, max_len, id_num_list, sentence_length,
+                                                   quantity_cell_list)
+        # graph_newc1 = get_quantity_graph1(input_batch_t, max_len, id_num_list, sentence_length, quantity_cell_list)
+        graph_total = [graph_newc.tolist(), graph_greater.tolist(), graph_lower.tolist(), graph_quanbet.tolist(),
+                       graph_attbet.tolist()]
         batch_graph.append(graph_total)
     batch_graph = np.array(batch_graph)
     return batch_graph
 
-def get_single_example_graph(input_batch, input_length,group,num_value,num_pos):
+
+def get_single_example_graph(input_batch, input_length, group, num_value, num_pos):
     batch_graph = []
     max_len = input_length
     sentence_length = input_length
@@ -936,11 +1011,13 @@ def get_single_example_graph(input_batch, input_length,group,num_value,num_pos):
     graph_attbet = get_attribute_between_graph(input_batch, max_len, id_num_list, sentence_length, quantity_cell_list)
     graph_greater = get_greater_num_graph(max_len, sentence_length, num_list, id_num_list)
     graph_lower = get_greater_num_graph(max_len, sentence_length, num_list, id_num_list)
-    #graph_newc1 = get_quantity_graph1(input_batch, max_len, id_num_list, sentence_length, quantity_cell_list)
-    graph_total = [graph_newc.tolist(),graph_greater.tolist(),graph_lower.tolist(),graph_quanbet.tolist(),graph_attbet.tolist()]
+    # graph_newc1 = get_quantity_graph1(input_batch, max_len, id_num_list, sentence_length, quantity_cell_list)
+    graph_total = [graph_newc.tolist(), graph_greater.tolist(), graph_lower.tolist(), graph_quanbet.tolist(),
+                   graph_attbet.tolist()]
     batch_graph.append(graph_total)
     batch_graph = np.array(batch_graph)
     return batch_graph
+
 
 # prepare the batches
 def prepare_train_batch(pairs_to_batch, batch_size):
@@ -960,7 +1037,7 @@ def prepare_train_batch(pairs_to_batch, batch_size):
     graph_batches = []
     num_value_batches = []
     while pos + batch_size < len(pairs):
-        batches.append(pairs[pos:pos+batch_size])
+        batches.append(pairs[pos:pos + batch_size])
         pos += batch_size
     batches.append(pairs[pos:])
 
@@ -968,7 +1045,7 @@ def prepare_train_batch(pairs_to_batch, batch_size):
         batch = sorted(batch, key=lambda tp: tp[1], reverse=True)
         input_length = []
         output_length = []
-        for _, i, _, j, _, _, _,_ in batch:
+        for _, i, _, j, _, _, _, _ in batch:
             input_length.append(i)
             output_length.append(j)
         input_lengths.append(input_length)
@@ -992,7 +1069,7 @@ def prepare_train_batch(pairs_to_batch, batch_size):
             num_size_batch.append(len(num_pos))
             num_value_batch.append(num)
             group_batch.append(group)
-            
+
         input_batches.append(input_batch)
         nums_batches.append(num_batch)
         output_batches.append(output_batch)
@@ -1001,9 +1078,11 @@ def prepare_train_batch(pairs_to_batch, batch_size):
         num_size_batches.append(num_size_batch)
         num_value_batches.append(num_value_batch)
         group_batches.append(group_batch)
-        graph_batches.append(get_single_batch_graph(input_batch, input_length,group_batch,num_value_batch,num_pos_batch))
-        
+        graph_batches.append(
+            get_single_batch_graph(input_batch, input_length, group_batch, num_value_batch, num_pos_batch))
+
     return input_batches, input_lengths, output_batches, output_lengths, nums_batches, num_stack_batches, num_pos_batches, num_size_batches, num_value_batches, graph_batches
+
 
 def get_num_stack(eq, output_lang, num_pos):
     num_stack = []
@@ -1075,7 +1154,7 @@ def prepare_de_train_batch(pairs_to_batch, batch_size, output_lang, rate, englis
     num_stack_batches = []  # save the num stack which
     num_pos_batches = []
     while pos + batch_size < len(pairs):
-        batches.append(pairs[pos:pos+batch_size])
+        batches.append(pairs[pos:pos + batch_size])
         pos += batch_size
     batches.append(pairs[pos:])
 
@@ -1414,5 +1493,3 @@ def allocation(ex_copy, rate):
                 return temp_res
         idx += 1
     return ex
-
-

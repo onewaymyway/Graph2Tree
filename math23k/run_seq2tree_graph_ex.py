@@ -1,6 +1,7 @@
 # coding: utf-8
 from src.train_and_evaluate import *
 from src.models import *
+from src.pre_data import *
 import time
 import torch.optim
 from src.expressions_transfer import *
@@ -87,26 +88,27 @@ def change_num(num):
     return new_num
 
 
+model_root="model_traintest"
 def load_pre_params():
     print("load_pre_params",USE_CUDA)
     if USE_CUDA:
-        encoder.load_state_dict(torch.load("model_traintest/encoder"))
-        predict.load_state_dict(torch.load("model_traintest/predict"))
-        generate.load_state_dict(torch.load("model_traintest/generate"))
-        merge.load_state_dict(torch.load("model_traintest/merge"))
+        encoder.load_state_dict(torch.load(model_root+"/encoder"))
+        predict.load_state_dict(torch.load(model_root+"/predict"))
+        generate.load_state_dict(torch.load(model_root+"/generate"))
+        merge.load_state_dict(torch.load(model_root+"/merge"))
     else:
-        encoder.load_state_dict(torch.load("model_traintest/encoder",map_location=torch.device('cpu')))
-        predict.load_state_dict(torch.load("model_traintest/predict",map_location=torch.device('cpu')))
-        generate.load_state_dict(torch.load("model_traintest/generate",map_location=torch.device('cpu')))
-        merge.load_state_dict(torch.load("model_traintest/merge",map_location=torch.device('cpu')))
+        encoder.load_state_dict(torch.load(model_root+"/encoder",map_location=torch.device('cpu')))
+        predict.load_state_dict(torch.load(model_root+"/predict",map_location=torch.device('cpu')))
+        generate.load_state_dict(torch.load(model_root+"/generate",map_location=torch.device('cpu')))
+        merge.load_state_dict(torch.load(model_root+"/merge",map_location=torch.device('cpu')))
 
 
 def save_params():
     print("save_params")
-    torch.save(encoder.state_dict(), "model_traintest/encoder")
-    torch.save(predict.state_dict(), "model_traintest/predict")
-    torch.save(generate.state_dict(), "model_traintest/generate")
-    torch.save(merge.state_dict(), "model_traintest/merge")
+    torch.save(encoder.state_dict(), model_root+"/encoder")
+    torch.save(predict.state_dict(), model_root+"/predict")
+    torch.save(generate.state_dict(), model_root+"/generate")
+    torch.save(merge.state_dict(), model_root+"/merge")
 
 
 data = load_raw_data("data/Math_23K.json")
@@ -135,9 +137,11 @@ pairs_trained = train_fold
 #        pairs_tested += fold_pairs[fold_t]
 #    else:
 #        pairs_trained += fold_pairs[fold_t]
-
-input_lang, output_lang, train_pairs, test_pairs = prepare_data(pairs_trained, pairs_tested, 5, generate_nums,
-                                                                copy_nums, tree=True)
+model_info=ModelInfo()
+model_info.build_lang(pairs_trained,5, generate_nums,copy_nums,True)
+train_pairs=model_info.build_langed_pairs(pairs_trained,"train")
+test_pairs=model_info.build_langed_pairs(pairs_tested,"test")
+#input_lang, output_lang, train_pairs, test_pairs = prepare_data(pairs_trained, pairs_tested, 5, generate_nums,copy_nums, tree=True)
 
 # print('train_pairs[0]')
 # print(train_pairs[0])
