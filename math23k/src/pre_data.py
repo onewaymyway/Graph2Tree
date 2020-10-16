@@ -86,12 +86,15 @@ class ModelInfo:
     def __init__(self):
         self.input_lang=None
         self.output_lang=None
-        self.tree=tree
+        self.tree=False
 
     def build_lang(self,pairs, trim_min_count, generate_nums, copy_nums, tree):
         input_lang = Lang()
         output_lang = Lang()
         self.tree=tree
+        self.trim_min_count=trim_min_count
+        self.generate_nums = generate_nums
+        self.copy_nums = copy_nums
 
         print("Indexing words...")
         for pair in pairs:
