@@ -366,6 +366,8 @@ def do_train():
             totallen = len(input_lengths)
             print("start big_batch train")
             for idx in range(len(input_lengths)):
+                time.sleep(1)
+                continue
                 loss = train_tree(
                     input_batches[idx], input_lengths[idx], output_batches[idx], output_lengths[idx],
                     num_stack_batches[idx], num_size_batches[idx], generate_num_ids, encoder, predict, generate, merge,
