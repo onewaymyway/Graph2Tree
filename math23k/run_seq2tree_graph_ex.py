@@ -121,7 +121,7 @@ def save_params():
 def build_math23k_data():
     # data = load_raw_data("data/Math_23K.json")
 
-    data_set={}
+    data_set = {}
     group_data = read_json("data/Math_23K_processed.json")
 
     data = load_raw_data("data/Math_23K.json")
@@ -136,7 +136,7 @@ def build_math23k_data():
 
     train_fold, test_fold, valid_fold = get_train_test_fold(ori_path, prefix, data, pairs, group_data)
 
-    data_set["generate_nums"]=generate_nums
+    data_set["generate_nums"] = generate_nums
     data_set["copy_nums"] = copy_nums
     data_set["train_fold"] = train_fold
     data_set["test_fold"] = test_fold
@@ -144,13 +144,14 @@ def build_math23k_data():
 
     return data_set
 
-data_set=build_math23k_data()
 
-generate_nums=data_set["generate_nums"]
-copy_nums=data_set["copy_nums"]
-train_fold=data_set["train_fold"]
-test_fold=data_set["test_fold"]
-valid_fold=data_set["valid_fold"]
+data_set = build_math23k_data()
+
+generate_nums = data_set["generate_nums"]
+copy_nums = data_set["copy_nums"]
+train_fold = data_set["train_fold"]
+test_fold = data_set["test_fold"]
+valid_fold = data_set["valid_fold"]
 
 best_acc_fold = []
 
@@ -184,24 +185,54 @@ test_pairs = model_info.build_langed_pairs(pairs_tested, "test")
 # print(train_pairs[0])
 # exit()
 # Initialize models
-encoder = EncoderSeq(input_size=input_lang.n_words, embedding_size=embedding_size, hidden_size=hidden_size,
-                     n_layers=n_layers)
-predict = Prediction(hidden_size=hidden_size, op_nums=output_lang.n_words - copy_nums - 1 - len(generate_nums),
-                     input_size=len(generate_nums))
-generate = GenerateNode(hidden_size=hidden_size, op_nums=output_lang.n_words - copy_nums - 1 - len(generate_nums),
-                        embedding_size=embedding_size)
-merge = Merge(hidden_size=hidden_size, embedding_size=embedding_size)
-# the embedding layer is  only for generated number embeddings, operators, and paddings
 
-encoder_optimizer = torch.optim.Adam(encoder.parameters(), lr=learning_rate, weight_decay=weight_decay)
-predict_optimizer = torch.optim.Adam(predict.parameters(), lr=learning_rate, weight_decay=weight_decay)
-generate_optimizer = torch.optim.Adam(generate.parameters(), lr=learning_rate, weight_decay=weight_decay)
-merge_optimizer = torch.optim.Adam(merge.parameters(), lr=learning_rate, weight_decay=weight_decay)
+op_nums = output_lang.n_words - copy_nums - 1 - len(generate_nums)
+input_size = input_lang.n_words
 
-encoder_scheduler = torch.optim.lr_scheduler.StepLR(encoder_optimizer, step_size=20, gamma=0.5)
-predict_scheduler = torch.optim.lr_scheduler.StepLR(predict_optimizer, step_size=20, gamma=0.5)
-generate_scheduler = torch.optim.lr_scheduler.StepLR(generate_optimizer, step_size=20, gamma=0.5)
-merge_scheduler = torch.optim.lr_scheduler.StepLR(merge_optimizer, step_size=20, gamma=0.5)
+generate_num_ids = []
+for num in generate_nums:
+    generate_num_ids.append(output_lang.word2index[num])
+
+
+def build_models(model_info):
+    model_info.encoder = EncoderSeq(input_size=input_size, embedding_size=embedding_size, hidden_size=hidden_size,
+                                    n_layers=n_layers)
+    model_info.predict = Prediction(hidden_size=hidden_size, op_nums=op_nums,
+                                    input_size=len(generate_nums))
+    model_info.generate = GenerateNode(hidden_size=hidden_size, op_nums=op_nums,
+                                       embedding_size=embedding_size)
+    model_info.merge = Merge(hidden_size=hidden_size, embedding_size=embedding_size)
+    # the embedding layer is  only for generated number embeddings, operators, and paddings
+
+    model_info.encoder_optimizer = torch.optim.Adam(encoder.parameters(), lr=learning_rate, weight_decay=weight_decay)
+    model_info.predict_optimizer = torch.optim.Adam(predict.parameters(), lr=learning_rate, weight_decay=weight_decay)
+    model_info.generate_optimizer = torch.optim.Adam(generate.parameters(), lr=learning_rate, weight_decay=weight_decay)
+    model_info.merge_optimizer = torch.optim.Adam(merge.parameters(), lr=learning_rate, weight_decay=weight_decay)
+
+    model_info.encoder_scheduler = torch.optim.lr_scheduler.StepLR(encoder_optimizer, step_size=20, gamma=0.5)
+    model_info.predict_scheduler = torch.optim.lr_scheduler.StepLR(predict_optimizer, step_size=20, gamma=0.5)
+    model_info.generate_scheduler = torch.optim.lr_scheduler.StepLR(generate_optimizer, step_size=20, gamma=0.5)
+    model_info.merge_scheduler = torch.optim.lr_scheduler.StepLR(merge_optimizer, step_size=20, gamma=0.5)
+
+    return model_info
+
+
+build_models(model_info)
+
+encoder = model_info.encoder
+predict = model_info.predict
+generate = model_info.generate
+merge = model_info.merge
+
+encoder_optimizer = model_info.encoder_optimizer
+predict_optimizer = model_info.predict_optimizer
+generate_optimizer = model_info.generate_optimizer
+merge_optimizer = model_info.merge_optimizer
+
+encoder_scheduler = model_info.encoder_scheduler
+predict_scheduler = model_info.predict_scheduler
+generate_scheduler = model_info.generate_scheduler
+merge_scheduler = model_info.merge_scheduler
 
 if not if_train:
     load_pre_params()
@@ -212,10 +243,6 @@ if USE_CUDA:
     predict.cuda()
     generate.cuda()
     merge.cuda()
-
-generate_num_ids = []
-for num in generate_nums:
-    generate_num_ids.append(output_lang.word2index[num])
 
 
 def do_eval():

@@ -110,6 +110,22 @@ class ModelInfo:
         self.generate_nums = 0
         self.copy_nums = 0
 
+        self.encoder=None
+        self.predict = None
+        self.generate = None
+        self.merge = None
+
+        self.encoder_optimizer = None
+        self.predict_optimizer = None
+        self.generate_optimizer = None
+        self.merge_optimizer = None
+
+        self.encoder_scheduler = None
+        self.predict_scheduler = None
+        self.generate_scheduler = None
+        self.merge_scheduler = None
+
+
     def set_base_path(self,file_path):
         self.base_path=file_path
         self.lang_path=file_path+"/lang.json"
