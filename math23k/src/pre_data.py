@@ -113,7 +113,7 @@ class ModelInfo:
         self.output_lang=output_lang
 
 
-    def build_langed_pairs(self,train_pairs, sign="train"):
+    def build_langed_pairs(self,pairs_trained, sign="train"):
         print("build_langed_pairs", sign)
         input_lang, output_lang=self.input_lang,self.output_lang
         tree=self.tree
