@@ -343,7 +343,7 @@ def do_train():
 
 
         step_batch_count=100
-        step_count=step_batch_count*step_batch_count
+        step_count=step_batch_count*batch_size
 
         train_big_batch=batch_creator(train_pairs,step_count)
 
@@ -356,11 +356,14 @@ def do_train():
 
             start = time.time()
             loss_total = 0
+
+            print("prepare big_batch data")
             input_batches, input_lengths, output_batches, output_lengths, nums_batches, \
                 num_stack_batches, num_pos_batches, num_size_batches, num_value_batches, graph_batches = prepare_train_batch(
                     train_small, batch_size)
 
             totallen = len(input_lengths)
+            print("start big_batch train")
             for idx in range(len(input_lengths)):
                 loss = train_tree(
                     input_batches[idx], input_lengths[idx], output_batches[idx], output_lengths[idx],
