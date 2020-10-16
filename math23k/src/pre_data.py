@@ -3,7 +3,7 @@ import json
 import copy
 import re
 import numpy as np
-from aiutils.fileutils import saveJsonFile,readJsonFile
+from aiutils.fileutils import saveJsonFile,readJsonFile,ensure_dir
 
 PAD_token = 0
 
@@ -128,6 +128,7 @@ class ModelInfo:
 
     def set_base_path(self,file_path):
         self.base_path=file_path
+        ensure_dir(file_path)
         self.lang_path=file_path+"/lang.json"
 
     def save_lang(self):

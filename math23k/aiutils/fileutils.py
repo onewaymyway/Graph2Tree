@@ -5,6 +5,10 @@ import json
 import os
 import shutil
 
+def ensure_dir(dir_path):
+    if isExist(dir_path):
+        return
+    os.makedirs(dir_path)
 def copy(file_path,new_path):
     shutil.copy(file_path, new_path)
 
