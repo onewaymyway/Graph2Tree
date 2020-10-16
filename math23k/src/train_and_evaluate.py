@@ -647,6 +647,7 @@ def train_tree(input_batch, input_length, target_batch, target_length, nums_stac
     # sequence mask for attention
     seq_mask = []
     max_len = max(input_length)
+    print("max_len",max_len)
     for i in input_length:
         seq_mask.append([0 for _ in range(i)] + [1 for _ in range(i, max_len)])
     seq_mask = torch.BoolTensor(seq_mask)
