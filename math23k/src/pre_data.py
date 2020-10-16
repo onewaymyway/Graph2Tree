@@ -141,7 +141,7 @@ class ModelInfo:
         output_lang = Lang()
 
         input_lang.recover_from_data(lang_data["input_lang"])
-        output_lang.recover_from_data(output_lang["input_lang"])
+        output_lang.recover_from_data(lang_data["output_lang"])
 
         self.input_lang=input_lang
         self.output_lang = output_lang
