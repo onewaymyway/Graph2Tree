@@ -140,7 +140,7 @@ pairs_trained = train_fold
 model_info=ModelInfo()
 model_info.set_base_path(model_root)
 
-do_recover_lang=False
+do_recover_lang=True
 do_save_lang=True
 
 if do_recover_lang:
