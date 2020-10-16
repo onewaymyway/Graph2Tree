@@ -8,8 +8,11 @@ from src.expressions_transfer import *
 import json
 import argparse
 import ast
+from aiutils.fileutils import readJsonLines
+from src.data_utils import create_group, split_by_lens
 
 parser = argparse.ArgumentParser(__doc__)
+parser.add_argument("--data_set_type", type=str, default="math23k", help="data_set_type")
 parser.add_argument("--model_root", type=str, default="model_traintest", help="model_root")
 parser.add_argument("--batch_size", type=int, default=64, help="Total examples' number in batch for training.")
 parser.add_argument("--num_epoch", type=int, default=80, help="Number of epoches for fine-tuning.")
@@ -39,6 +42,8 @@ beam_size = 5
 n_layers = 2
 ori_path = './data/'
 prefix = '23k_processed.json'
+
+data_set_type = args.data_set_type
 
 model_root = args.model_root
 
@@ -119,6 +124,7 @@ def save_params():
 
 
 def build_math23k_data():
+    print("build_math23k_data")
     # data = load_raw_data("data/Math_23K.json")
 
     data_set = {}
@@ -145,7 +151,41 @@ def build_math23k_data():
     return data_set
 
 
-data_set = build_math23k_data()
+def build_ape_data():
+    print("build_ape_data")
+    # data = load_raw_data("data/Math_23K.json")
+
+    data_set = {}
+
+    tests = readJsonLines("data_ape/test.ape.json")
+    trains = readJsonLines("data_ape/train.ape.json")
+    valids = readJsonLines("data_ape/valid.ape.json")
+
+    data = test + trains + valids
+
+    pairs, generate_nums, copy_nums = transfer_num(data)
+
+    temp_pairs = []
+    for p in pairs:
+        # [句子，表达式，数字列表,数字起始位置]
+        temp_pairs.append((p[0], from_infix_to_prefix(p[1]), p[2], p[3], create_group(p[0], p[3])))
+    pairs = temp_pairs
+
+    train_fold, test_fold, valid_fold = split_by_lens(temp_pairs, [len(trains), len(tests), len(valids)])
+
+    data_set["generate_nums"] = generate_nums
+    data_set["copy_nums"] = copy_nums
+    data_set["train_fold"] = train_fold
+    data_set["test_fold"] = test_fold
+    data_set["valid_fold"] = valid_fold
+
+    return data_set
+
+
+if data_set_type == "ape":
+    data_set = build_ape_data()
+else:
+    data_set = build_math23k_data()
 
 generate_nums = data_set["generate_nums"]
 copy_nums = data_set["copy_nums"]
@@ -204,14 +244,21 @@ def build_models(model_info):
     model_info.merge = Merge(hidden_size=hidden_size, embedding_size=embedding_size)
     # the embedding layer is  only for generated number embeddings, operators, and paddings
 
-    model_info.encoder_optimizer = torch.optim.Adam(model_info.encoder.parameters(), lr=learning_rate, weight_decay=weight_decay)
-    model_info.predict_optimizer = torch.optim.Adam(model_info.predict.parameters(), lr=learning_rate, weight_decay=weight_decay)
-    model_info.generate_optimizer = torch.optim.Adam(model_info.generate.parameters(), lr=learning_rate, weight_decay=weight_decay)
-    model_info.merge_optimizer = torch.optim.Adam(model_info.merge.parameters(), lr=learning_rate, weight_decay=weight_decay)
+    model_info.encoder_optimizer = torch.optim.Adam(model_info.encoder.parameters(), lr=learning_rate,
+                                                    weight_decay=weight_decay)
+    model_info.predict_optimizer = torch.optim.Adam(model_info.predict.parameters(), lr=learning_rate,
+                                                    weight_decay=weight_decay)
+    model_info.generate_optimizer = torch.optim.Adam(model_info.generate.parameters(), lr=learning_rate,
+                                                     weight_decay=weight_decay)
+    model_info.merge_optimizer = torch.optim.Adam(model_info.merge.parameters(), lr=learning_rate,
+                                                  weight_decay=weight_decay)
 
-    model_info.encoder_scheduler = torch.optim.lr_scheduler.StepLR(model_info.encoder_optimizer, step_size=20, gamma=0.5)
-    model_info.predict_scheduler = torch.optim.lr_scheduler.StepLR(model_info.predict_optimizer, step_size=20, gamma=0.5)
-    model_info.generate_scheduler = torch.optim.lr_scheduler.StepLR(model_info.generate_optimizer, step_size=20, gamma=0.5)
+    model_info.encoder_scheduler = torch.optim.lr_scheduler.StepLR(model_info.encoder_optimizer, step_size=20,
+                                                                   gamma=0.5)
+    model_info.predict_scheduler = torch.optim.lr_scheduler.StepLR(model_info.predict_optimizer, step_size=20,
+                                                                   gamma=0.5)
+    model_info.generate_scheduler = torch.optim.lr_scheduler.StepLR(model_info.generate_optimizer, step_size=20,
+                                                                    gamma=0.5)
     model_info.merge_scheduler = torch.optim.lr_scheduler.StepLR(model_info.merge_optimizer, step_size=20, gamma=0.5)
 
     return model_info
