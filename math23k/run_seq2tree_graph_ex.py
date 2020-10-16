@@ -217,6 +217,8 @@ else:
     if do_save_lang:
         model_info.save_lang()
 
+#print("out_lang",output_lang)
+
 train_pairs = model_info.build_langed_pairs(pairs_trained, "train")
 test_pairs = model_info.build_langed_pairs(pairs_tested, "test")
 # input_lang, output_lang, train_pairs, test_pairs = prepare_data(pairs_trained, pairs_tested, 5, generate_nums,copy_nums, tree=True)

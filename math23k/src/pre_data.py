@@ -90,6 +90,7 @@ class Lang:
 
     def build_output_lang_for_tree(self, generate_num, copy_nums):  # build the output lang vocab and dict
         self.num_start = len(self.index2word)
+        print("out_put",self.word2count)
 
         self.index2word = self.index2word + generate_num + ["N" + str(i) for i in range(copy_nums)] + ["UNK"]
         self.n_words = len(self.index2word)
