@@ -116,6 +116,8 @@ class ModelInfo:
 
     def save_lang(self):
 
+        print("save lang to ", self.lang_path)
+
         lang_data={}
         lang_data["input_lang"]=self.input_lang.get_data()
         lang_data["output_lang"] = self.output_lang.get_data()
@@ -128,6 +130,7 @@ class ModelInfo:
 
 
     def recover_lang(self):
+        print("recover lang from ",self.lang_path)
         lang_data=readJsonFile(self.lang_path)
         self.tree=lang_data["tree"]
         self.trim_min_count = lang_data["trim_min_count"]
