@@ -342,7 +342,7 @@ def do_train():
         print("epoch:", epoch + 1)
 
 
-        step_batch_count=100
+        step_batch_count=50
         step_count=step_batch_count*batch_size
 
         train_big_batch=batch_creator(train_pairs,step_count)
