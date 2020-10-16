@@ -10,6 +10,7 @@ import argparse
 import ast
 from aiutils.fileutils import readJsonLines
 from src.data_utils import create_group, split_by_lens
+import gc
 
 parser = argparse.ArgumentParser(__doc__)
 parser.add_argument("--data_set_type", type=str, default="math23k", help="data_set_type")
@@ -373,6 +374,7 @@ def do_train():
                 loss_total += loss
                 if idx % 5 == 0:
                     print("progress", idx, totallen, idx / totallen)
+                    gc.collect()
 
             print("loss:", loss_total / len(input_lengths))
             print("training time", time_since(time.time() - start))
