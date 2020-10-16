@@ -90,7 +90,7 @@ class Lang:
 
     def build_output_lang_for_tree(self, generate_num, copy_nums):  # build the output lang vocab and dict
         self.num_start = len(self.index2word)
-        print("out_put",self.word2count)
+        print("output_lang",self.word2count,generate_num,copy_nums)
 
         self.index2word = self.index2word + generate_num + ["N" + str(i) for i in range(copy_nums)] + ["UNK"]
         self.n_words = len(self.index2word)
@@ -496,6 +496,7 @@ def transfer_num(data):  # transfer num into "NUM"
         pairs.append((input_seq, out_seq, nums, num_pos))
 
     temp_g = []
+    print("generate_num_dic",generate_nums_dict)
     for g in generate_nums:
         if generate_nums_dict[g] >= 5:
             temp_g.append(g)
