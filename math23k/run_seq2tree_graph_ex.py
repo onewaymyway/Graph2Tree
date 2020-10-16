@@ -10,12 +10,16 @@ import argparse
 import ast
 
 parser = argparse.ArgumentParser(__doc__)
-
+parser.add_argument("--model_root", type=str, default="model_traintest", help="model_root")
+parser.add_argument("--batch_size", type=int, default=64, help="Total examples' number in batch for training.")
+parser.add_argument("--num_epoch", type=int, default=80, help="Number of epoches for fine-tuning.")
 parser.add_argument("--if_train", type=ast.literal_eval, default=True, help="if_train")
 parser.add_argument("--if_eval", type=ast.literal_eval, default=True, help="if_eval")
+parser.add_argument("--do_recover_lang", type=ast.literal_eval, default=False, help="do_recover_lang")
+parser.add_argument("--do_save_lang", type=ast.literal_eval, default=True, help="do_save_lang")
 args = parser.parse_args()
 
-print("args",args)
+print("args", args)
 
 
 def read_json(path):
@@ -25,10 +29,10 @@ def read_json(path):
 
 
 batch_size = 64
-batch_size = 64
+batch_size = args.batch_size
 embedding_size = 128
 hidden_size = 512
-n_epochs = 80
+n_epochs = args.num_epoch
 learning_rate = 1e-3
 weight_decay = 1e-5
 beam_size = 5
@@ -36,9 +40,13 @@ n_layers = 2
 ori_path = './data/'
 prefix = '23k_processed.json'
 
+model_root = args.model_root
+
 if_train = args.if_train
 if_eval = args.if_eval
 
+do_recover_lang = args.do_recover_lang
+do_save_lang = args.do_save_lang
 
 
 def get_train_test_fold(ori_path, prefix, data, pairs, group):
@@ -88,43 +96,61 @@ def change_num(num):
     return new_num
 
 
-model_root="model_traintest"
 def load_pre_params():
-    print("load_pre_params",USE_CUDA)
+    print("load_pre_params", USE_CUDA)
     if USE_CUDA:
-        encoder.load_state_dict(torch.load(model_root+"/encoder"))
-        predict.load_state_dict(torch.load(model_root+"/predict"))
-        generate.load_state_dict(torch.load(model_root+"/generate"))
-        merge.load_state_dict(torch.load(model_root+"/merge"))
+        encoder.load_state_dict(torch.load(model_root + "/encoder"))
+        predict.load_state_dict(torch.load(model_root + "/predict"))
+        generate.load_state_dict(torch.load(model_root + "/generate"))
+        merge.load_state_dict(torch.load(model_root + "/merge"))
     else:
-        encoder.load_state_dict(torch.load(model_root+"/encoder",map_location=torch.device('cpu')))
-        predict.load_state_dict(torch.load(model_root+"/predict",map_location=torch.device('cpu')))
-        generate.load_state_dict(torch.load(model_root+"/generate",map_location=torch.device('cpu')))
-        merge.load_state_dict(torch.load(model_root+"/merge",map_location=torch.device('cpu')))
+        encoder.load_state_dict(torch.load(model_root + "/encoder", map_location=torch.device('cpu')))
+        predict.load_state_dict(torch.load(model_root + "/predict", map_location=torch.device('cpu')))
+        generate.load_state_dict(torch.load(model_root + "/generate", map_location=torch.device('cpu')))
+        merge.load_state_dict(torch.load(model_root + "/merge", map_location=torch.device('cpu')))
 
 
 def save_params():
     print("save_params")
-    torch.save(encoder.state_dict(), model_root+"/encoder")
-    torch.save(predict.state_dict(), model_root+"/predict")
-    torch.save(generate.state_dict(), model_root+"/generate")
-    torch.save(merge.state_dict(), model_root+"/merge")
+    torch.save(encoder.state_dict(), model_root + "/encoder")
+    torch.save(predict.state_dict(), model_root + "/predict")
+    torch.save(generate.state_dict(), model_root + "/generate")
+    torch.save(merge.state_dict(), model_root + "/merge")
 
 
-data = load_raw_data("data/Math_23K.json")
-group_data = read_json("data/Math_23K_processed.json")
+def build_math23k_data():
+    # data = load_raw_data("data/Math_23K.json")
 
-data = load_raw_data("data/Math_23K.json")
+    data_set={}
+    group_data = read_json("data/Math_23K_processed.json")
 
-pairs, generate_nums, copy_nums = transfer_num(data)
+    data = load_raw_data("data/Math_23K.json")
 
-temp_pairs = []
-for p in pairs:
-    # [句子，表达式，数字列表,数字起始位置]
-    temp_pairs.append((p[0], from_infix_to_prefix(p[1]), p[2], p[3]))
-pairs = temp_pairs
+    pairs, generate_nums, copy_nums = transfer_num(data)
 
-train_fold, test_fold, valid_fold = get_train_test_fold(ori_path, prefix, data, pairs, group_data)
+    temp_pairs = []
+    for p in pairs:
+        # [句子，表达式，数字列表,数字起始位置]
+        temp_pairs.append((p[0], from_infix_to_prefix(p[1]), p[2], p[3]))
+    pairs = temp_pairs
+
+    train_fold, test_fold, valid_fold = get_train_test_fold(ori_path, prefix, data, pairs, group_data)
+
+    data_set["generate_nums"]=generate_nums
+    data_set["copy_nums"] = copy_nums
+    data_set["train_fold"] = generate_nums
+    data_set["test_fold"] = test_fold
+    data_set["valid_fold"] = valid_fold
+
+    return data_set
+
+data_set=build_math23k_data()
+
+generate_nums=data_set["generate_nums"]
+copy_nums=data_set["copy_nums"]
+train_fold=data_set["train_fold"]
+test_fold=data_set["test_fold"]
+valid_fold=data_set["valid_fold"]
 
 best_acc_fold = []
 
@@ -137,24 +163,22 @@ pairs_trained = train_fold
 #        pairs_tested += fold_pairs[fold_t]
 #    else:
 #        pairs_trained += fold_pairs[fold_t]
-model_info=ModelInfo()
+model_info = ModelInfo()
 model_info.set_base_path(model_root)
 
-do_recover_lang=True
-do_save_lang=True
-
 if do_recover_lang:
-    input_lang, output_lang=model_info.recover_lang()
+    input_lang, output_lang = model_info.recover_lang()
+    generate_nums = model_info.generate_nums
+    copy_nums = model_info.copy_nums
 else:
-    input_lang, output_lang=model_info.build_lang(pairs_trained,5, generate_nums,copy_nums,True)
+    input_lang, output_lang = model_info.build_lang(pairs_trained, 5, generate_nums, copy_nums, True)
 
     if do_save_lang:
-
         model_info.save_lang()
 
-train_pairs=model_info.build_langed_pairs(pairs_trained,"train")
-test_pairs=model_info.build_langed_pairs(pairs_tested,"test")
-#input_lang, output_lang, train_pairs, test_pairs = prepare_data(pairs_trained, pairs_tested, 5, generate_nums,copy_nums, tree=True)
+train_pairs = model_info.build_langed_pairs(pairs_trained, "train")
+test_pairs = model_info.build_langed_pairs(pairs_tested, "test")
+# input_lang, output_lang, train_pairs, test_pairs = prepare_data(pairs_trained, pairs_tested, 5, generate_nums,copy_nums, tree=True)
 
 # print('train_pairs[0]')
 # print(train_pairs[0])
@@ -261,8 +285,6 @@ def do_train():
         c += best_acc_fold[bl][2]
         print(best_acc_fold[bl])
     print(a / float(c), b / float(c))
-
-
 
 
 if if_train:
