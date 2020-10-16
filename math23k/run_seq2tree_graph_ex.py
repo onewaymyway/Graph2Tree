@@ -161,7 +161,7 @@ def build_ape_data():
     trains = readJsonLines("data_ape/train.ape.json")
     valids = readJsonLines("data_ape/valid.ape.json")
 
-    data = test + trains + valids
+    data = tests + trains + valids
 
     pairs, generate_nums, copy_nums = transfer_num(data)
 
