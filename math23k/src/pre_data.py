@@ -1109,7 +1109,8 @@ def get_single_example_graph(input_batch, input_length, group, num_value, num_po
 # prepare the batches
 def prepare_train_batch(pairs_to_batch, batch_size):
     pairs = copy.deepcopy(pairs_to_batch)
-    random.shuffle(pairs)  # shuffle the pairs
+    print("临时关闭shluffle")
+    #random.shuffle(pairs)  # shuffle the pairs
     pos = 0
     input_lengths = []
     output_lengths = []

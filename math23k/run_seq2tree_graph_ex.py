@@ -140,6 +140,7 @@ def build_math23k_data():
         # [句子，表达式，数字列表,数字起始位置]
         temp_pairs.append((p[0], from_infix_to_prefix(p[1]), p[2], p[3]))
     pairs = temp_pairs
+    print("pairs", pairs[0:50])
 
     train_fold, test_fold, valid_fold = get_train_test_fold(ori_path, prefix, data, pairs, group_data)
 
@@ -172,6 +173,7 @@ def build_ape_data():
         # [句子，表达式，数字列表,数字起始位置]
         temp_pairs.append((p[0], from_infix_to_prefix(p[1]), p[2], p[3], create_group(p[0], p[3])))
     pairs = temp_pairs
+    print("pairs",pairs[0:50])
 
     train_fold, test_fold, valid_fold = split_by_lens(temp_pairs, [len(trains), len(tests), len(valids)])
 
