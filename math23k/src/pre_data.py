@@ -425,7 +425,10 @@ def transfer_num(data,num_limit=5):  # transfer num into "NUM"
         nums = []
         input_seq = []
         seg = d["segmented_text"].strip().split(" ")
-        equations = d["equation"][2:]
+        equations=d["equation"]
+        if equations[1]=="=":
+            equations=equations[2:]
+        
 
         for s in seg:
             pos = re.search(pattern, s)
