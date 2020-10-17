@@ -177,7 +177,10 @@ def build_ape_data():
     temp_pairs = []
     for p in pairs:
         # [句子，表达式，数字列表,数字起始位置]
-        temp_pairs.append((p[0], from_infix_to_prefix(p[1]), p[2], p[3], create_group(p[0], p[3])))
+        pfix=from_infix_to_prefix(p[1])
+        if "." in pfix:
+            continue
+        temp_pairs.append((p[0], pfix, p[2], p[3], create_group(p[0], p[3])))
     pairs = temp_pairs
     print_lines("pairs",pairs[0:50])
 
@@ -359,6 +362,8 @@ def do_train():
         train_step=0
         total_step=len(train_pairs)
 
+        cur_index=0
+
         for train_small in train_big_batch:
 
             train_step+=step_count
@@ -376,12 +381,14 @@ def do_train():
             for idx in range(len(input_lengths)):
                 #time.sleep(1)
                 #continue
+                print("batch index",cur_index)
                 loss = train_tree(
                     input_batches[idx], input_lengths[idx], output_batches[idx], output_lengths[idx],
                     num_stack_batches[idx], num_size_batches[idx], generate_num_ids, encoder, predict, generate, merge,
                     encoder_optimizer, predict_optimizer, generate_optimizer, merge_optimizer, output_lang,
                     num_pos_batches[idx], graph_batches[idx])
                 loss_total += loss
+                cur_index+=batch_size
                 if idx % 5 == 0:
                     print("progress", idx, totallen, idx / totallen)
                     gc.collect()
