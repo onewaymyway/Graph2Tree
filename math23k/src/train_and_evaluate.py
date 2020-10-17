@@ -736,7 +736,7 @@ def train_tree(input_batch, input_length, target_batch, target_length, nums_stac
                 try:
                     current_num = current_nums_embeddings[idx, i - num_start].unsqueeze(0)
                 except:
-                    print("shape",current_embeddings.shape)
+                    print("shape",current_nums_embeddings.shape)
                     print("fail",current_nums_embeddings,idx,i - num_start,i,num_start)
                 while len(o) > 0 and o[-1].terminal:
                     sub_stree = o.pop()
