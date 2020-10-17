@@ -414,9 +414,10 @@ def load_roth_data(filename):  # load the json data to dict(dict()) for roth dat
 #     return test_str
 
 
-def transfer_num(data,num_limit=5):  # transfer num into "NUM"
+def transfer_num(data, num_limit=5):  # transfer num into "NUM"
     print("Transfer numbers...")
-    pattern = re.compile("\d*\(\d+/\d+\)\d*|\d+\.\d+%?|\d+%?")
+    # pattern = re.compile("\d*\(\d+/\d+\)\d*|\d+\.\d+%?|\d+%?")
+    pattern = re.compile("[-+]?([0-9]+(\.[0-9]*)?|\.[0-9]+)([eE][-+]?[0-9]+)+|\d*\(\d+/\d+\)\d*|\d+\.\d+%?|\d+%?")
     pairs = []
     generate_nums = []
     generate_nums_dict = {}
@@ -425,14 +426,16 @@ def transfer_num(data,num_limit=5):  # transfer num into "NUM"
         nums = []
         input_seq = []
         seg = d["segmented_text"].strip().split(" ")
-        equations=d["equation"]
-        if equations[1]=="=":
-            equations=equations[2:]
-        
+        equations = d["equation"]
+        if equations[1] == "=":
+            equations = equations[2:]
 
         for s in seg:
             pos = re.search(pattern, s)
+            if "eabcdd" in s:
+                print(pos)
             if pos and pos.start() == 0:
+
                 nums.append(s[pos.start(): pos.end()])
                 input_seq.append("NUM")
                 if pos.end() < len(s):
@@ -464,7 +467,7 @@ def transfer_num(data,num_limit=5):  # transfer num into "NUM"
                     if p_end < len(st):
                         res += seg_and_tag(st[p_end:])
                     return res
-            pos_st = re.search("\d+\.\d+%?|\d+%?", st)
+            pos_st = re.search("[-+]?([0-9]+(\.[0-9]*)?|\.[0-9]+)([eE][-+]?[0-9]+)+|\d+\.\d+%?|\d+%?", st)
             if pos_st:
                 p_start = pos_st.start()
                 p_end = pos_st.end()
@@ -499,7 +502,7 @@ def transfer_num(data,num_limit=5):  # transfer num into "NUM"
         pairs.append((input_seq, out_seq, nums, num_pos))
 
     temp_g = []
-    print("generate_num_dic",generate_nums_dict)
+    print("generate_num_dic", generate_nums_dict)
     for g in generate_nums:
         if generate_nums_dict[g] >= num_limit:
             temp_g.append(g)
