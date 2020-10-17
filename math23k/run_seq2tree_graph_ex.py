@@ -158,9 +158,9 @@ def build_ape_data():
 
     data_set = {}
 
-    tests = readJsonLines("data_ape/test.ape.json")
-    trains = readJsonLines("data_ape/train.ape.json")
-    valids = readJsonLines("data_ape/valid.ape.json")
+    tests = readJsonLines("data_ape/test.ape_adpt.json")
+    trains = readJsonLines("data_ape/train.ape_adpt.json")
+    valids = readJsonLines("data_ape/valid.ape_adpt.json")
 
     data = tests + trains + valids
 
