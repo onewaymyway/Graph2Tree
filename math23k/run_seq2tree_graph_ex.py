@@ -178,11 +178,13 @@ def build_ape_data():
     for p in pairs:
         # [句子，表达式，数字列表,数字起始位置]
         pfix=from_infix_to_prefix(p[1])
-        if "." in pfix:
-            continue
+        #if "." in pfix:
+        #   continue
         temp_pairs.append((p[0], pfix, p[2], p[3], create_group(p[0], p[3])))
     pairs = temp_pairs
     print_lines("pairs",pairs[0:50])
+
+    temp_pairs=temp_pairs[448:]
 
     train_fold, test_fold, valid_fold = split_by_lens(temp_pairs, [len(trains), len(tests), len(valids)])
 
