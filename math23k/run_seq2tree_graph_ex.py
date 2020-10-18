@@ -233,7 +233,7 @@ else:
     if do_save_lang:
         model_info.save_lang()
 
-#print("out_lang",output_lang)
+print("output_lang",output_lang.index2word)
 
 print("build train_pairs")
 train_pairs = model_info.build_langed_pairs(pairs_trained, "train")
