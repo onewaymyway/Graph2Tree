@@ -249,6 +249,9 @@ print("build pairs complete")
 
 op_nums = output_lang.n_words - copy_nums - 1 - len(generate_nums)
 input_size = input_lang.n_words
+print("op_nums",op_nums)
+print("copy_nums",copy_nums)
+print("generate_nums",len(generate_nums),generate_nums)
 
 generate_num_ids = []
 for num in generate_nums:
