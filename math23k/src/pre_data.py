@@ -432,7 +432,7 @@ def transfer_num(data, num_limit=5):  # transfer num into "NUM"
 
         for s in seg:
             pos = re.search(pattern, s)
-            if "eabcdd" in s:
+            if "0.16667ttt" in s:
                 print(pos)
             if pos and pos.start() == 0:
 
@@ -468,6 +468,7 @@ def transfer_num(data, num_limit=5):  # transfer num into "NUM"
                         res += seg_and_tag(st[p_end:])
                     return res
             pos_st = re.search("[-+]?([0-9]+(\.[0-9]*)?|\.[0-9]+)([eE][-+]?[0-9]+)+|\d+\.\d+%?|\d+%?", st)
+            # print(st,pos_st)
             if pos_st:
                 p_start = pos_st.start()
                 p_end = pos_st.end()
@@ -482,10 +483,16 @@ def transfer_num(data, num_limit=5):  # transfer num into "NUM"
                     res += seg_and_tag(st[p_end:])
                 return res
             for ss in st:
-                res.append(ss)
+                if ss == "*" and len(res) > 0 and res[-1] == "*":
+                    res[-1] = "**"
+                else:
+                    res.append(ss)
             return res
 
+        #print("the equations", equations)
+
         out_seq = seg_and_tag(equations)
+        #print("out_seq", out_seq)
         for s in out_seq:  # tag the num which is generated
             if s[0].isdigit() and s not in generate_nums and s not in nums:
                 generate_nums.append(s)

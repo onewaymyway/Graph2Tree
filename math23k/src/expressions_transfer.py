@@ -71,7 +71,7 @@ def from_infix_to_postfix(expression):
 def from_infix_to_prefix(expression):
     st = list()
     res = list()
-    priority = {"+": 0, "-": 0, "*": 1, "/": 1, "^": 2,"%":1,":":1,".":0}
+    priority = {"+": 0, "-": 0, "*": 1, "/": 1, "^": 2,"%":1,":":1,".":0,"**":2}
     expression = deepcopy(expression)
     expression.reverse()
     for e in expression:
@@ -167,7 +167,7 @@ def compute_postfix_expression(post_fix):
 
 def compute_prefix_expression(pre_fix):
     st = list()
-    operators = ["+", "-", "^", "*", "/", "%", ":", "."]
+    operators = ["+", "-", "^", "*", "/", "%", ":", ".", "**"]
     pre_fix = deepcopy(pre_fix)
     pre_fix.reverse()
     print(pre_fix)
@@ -200,6 +200,10 @@ def compute_prefix_expression(pre_fix):
             a = st.pop()
             b = st.pop()
             st.append(a * b)
+        elif p == "**" and len(st) > 1:
+            a = st.pop()
+            b = st.pop()
+            st.append(pow(a, b))
         elif p == "%" and len(st) > 0:
             a = st.pop()
             st.append(a * 0.01)
@@ -226,9 +230,11 @@ def compute_prefix_expression(pre_fix):
                 return None
             st.append(a ** b)
         else:
+            print("last", p, st)
             return None
     if len(st) == 1:
         return st.pop()
     print("stack", st)
     return None
+
 
