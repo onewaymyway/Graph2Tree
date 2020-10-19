@@ -726,6 +726,8 @@ def train_tree(input_batch, input_length, target_batch, target_length, nums_stac
     # 最大的公式长度
     max_target_length = max(target_length)
 
+    print("target_len",max_target_length,target_length)
+
     all_node_outputs = []
     # all_leafs = []
 
@@ -753,6 +755,8 @@ def train_tree(input_batch, input_length, target_batch, target_length, nums_stac
 
     # 先生成根节点，再生成左子树节点，最后生成右子树节点
     for t in range(max_target_length):
+
+        print("t",t)
         # 2. prediction
         # encoder_outputs:          node representation(words)
         # all_nums_encoder_outputs: node representation(numbers)
@@ -779,12 +783,16 @@ def train_tree(input_batch, input_length, target_batch, target_length, nums_stac
 
         all_node_outputs.append(outputs)
 
+        print("target t before", target[t])
+
         # 处理存在重复数字的情况
         target_t, generate_input = generate_tree_input(target[t].tolist(), outputs, nums_stack_batch, num_start, unk)
         # target_t:       [batch_size]
         # generate_input: [batch_size]
 
         target[t] = target_t
+
+        print("target t after",target[t])
         if USE_CUDA:
             generate_input = generate_input.cuda()
 
