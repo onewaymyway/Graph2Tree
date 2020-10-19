@@ -659,7 +659,7 @@ def train_tree(input_batch, input_length, target_batch, target_length, nums_stac
     num_mask = []
     # max_num_size = num_size + constant_size
     max_num_size = max(num_size_batch) + len(generate_nums)
-    print("max_num_size",max(num_size_batch,len(generate_nums)))
+    print("max_num_size",max_num_size,max(num_size_batch),len(generate_nums))
     for i in num_size_batch:
         d = i + len(generate_nums)
         num_mask.append([0] * d + [1] * (max_num_size - d))
