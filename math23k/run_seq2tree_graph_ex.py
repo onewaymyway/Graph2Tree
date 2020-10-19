@@ -172,7 +172,7 @@ def build_ape_data():
     data = tests + trains + valids
 
     pairs, generate_nums, copy_nums = transfer_num(data,1000)
-    generate_nums=["1","3.14","2","12","60","10","100","1000","7"]
+    generate_nums=["1","3.14","2","12","60","10","100","1000","7","100%"]
 
     temp_pairs = []
     for p in pairs:

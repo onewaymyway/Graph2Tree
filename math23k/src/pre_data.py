@@ -202,6 +202,7 @@ class ModelInfo:
         train_pairs=[]
         for pair in pairs_trained:
             num_stack = []
+            isOK=True
             for word in pair[1]:
                 temp_num = []
                 flag_not = True
@@ -214,9 +215,14 @@ class ModelInfo:
                 if not flag_not and len(temp_num) != 0:
                     num_stack.append(temp_num)
                 if not flag_not and len(temp_num) == 0:
+                    #数字列表中找不到 如果是train模式，直接丢弃
+                    if sign=="train":
+                        isOK = False
                     num_stack.append([_ for _ in range(len(pair[2]))])
 
             num_stack.reverse()
+            if not isOK:
+                continue
             input_cell = indexes_from_sentence(input_lang, pair[0])
             output_cell = indexes_from_sentence(output_lang, pair[1], tree)
             # train_pairs.append((input_cell, len(input_cell), output_cell, len(output_cell),

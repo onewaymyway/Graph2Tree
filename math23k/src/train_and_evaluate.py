@@ -649,6 +649,8 @@ def train_tree(input_batch, input_length, target_batch, target_length, nums_stac
     max_len = max(input_length)
     print("max_len",max_len)
 
+    #print("target_batch",target_batch)
+
     # seq_mask: 未被mask的部分填充为0，被mask的部分填充为1
     for i in input_length:
         seq_mask.append([0 for _ in range(i)] + [1 for _ in range(i, max_len)])
