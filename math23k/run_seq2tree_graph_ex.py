@@ -248,6 +248,20 @@ print("build pairs complete")
 # Initialize models
 
 #self.index2word = self.index2word + generate_num + ["N" + str(i) for i in range(copy_nums)] + ["UNK"]
+
+
+#op_nums=8 操作符 {'/': 184868, '+': 112261, '*': 193946, '-': 107816, '**': 9086, '.': 271, '%': 75, ':': 133}
+#generate_nums=9 常量 ["1","3.14","2","12","60","10","100","1000","7"]
+#copy_nums n0 n1 n2 ...n49 total=50
+#UNK
+#out_n_words=68
+'''
+ ['/', '+', '*', '-', '**', '.', '%', ':', 
+ '1', '3.14', '2', '12', '60', '10', '100', '1000', '7', 
+ 'N0', 'N1', 'N2', 'N3', 'N4', 'N5', 'N6', 'N7', 'N8', 'N9', 'N10', 'N11', 'N12', 'N13', 'N14', 'N15', 'N16', 'N17', 'N18', 'N19', 'N20', 'N21', 'N22', 'N23', 'N24', 'N25', 'N26', 'N27', 'N28', 'N29', 'N30', 'N31', 'N32', 'N33', 'N34', 'N35', 'N36', 'N37', 'N38', 'N39', 'N40', 'N41', 'N42', 'N43', 'N44', 'N45', 'N46', 'N47', 'N48', 'N49', 
+ 'UNK']
+
+'''
 op_nums = output_lang.n_words - copy_nums - 1 - len(generate_nums)
 input_size = input_lang.n_words
 print("out_n_words",output_lang.n_words)

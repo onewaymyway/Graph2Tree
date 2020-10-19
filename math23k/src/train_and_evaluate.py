@@ -648,26 +648,39 @@ def train_tree(input_batch, input_length, target_batch, target_length, nums_stac
     seq_mask = []
     max_len = max(input_length)
     print("max_len",max_len)
+
+    # seq_mask: 未被mask的部分填充为0，被mask的部分填充为1
     for i in input_length:
         seq_mask.append([0 for _ in range(i)] + [1 for _ in range(i, max_len)])
     seq_mask = torch.BoolTensor(seq_mask)
+    # seq_mask: [batch_size, seq_len]
 
+    # sequence num mask for attention
     num_mask = []
+    # max_num_size = num_size + constant_size
     max_num_size = max(num_size_batch) + len(generate_nums)
+    print("max_num_size",max(num_size_batch,len(generate_nums)))
     for i in num_size_batch:
         d = i + len(generate_nums)
         num_mask.append([0] * d + [1] * (max_num_size - d))
     num_mask = torch.BoolTensor(num_mask)
+    # num_mask: [batch_size, num_size + constant_size]
 
     unk = output_lang.word2index["UNK"]
 
     # Turn padded arrays into (batch_size x max_len) tensors, transpose into (max_len x batch_size)
     input_var = torch.LongTensor(input_batch).transpose(0, 1)
+    # input_var:   [batch_size, seq_len] => [seq_len, batch_size]
 
     target = torch.LongTensor(target_batch).transpose(0, 1)
+    # target:      [batch_size, tgt_len] => [tgt_len, batch_size]
+
     batch_graph = torch.LongTensor(batch_graph)
+    # batch_graph: [batch_size, 5, seq_len, seq_len]
 
     padding_hidden = torch.FloatTensor([0.0 for _ in range(predict.hidden_size)]).unsqueeze(0)
+    # padding_hidden: [1, hidden_size]
+
     batch_size = len(input_length)
 
     encoder.train()
@@ -682,6 +695,12 @@ def train_tree(input_batch, input_length, target_batch, target_length, nums_stac
         num_mask = num_mask.cuda()
         batch_graph = batch_graph.cuda()
 
+        # input_var:      [seq_len, batch_size]
+        # seq_mask:       [batch_size, seq_len]
+        # padding_hidden: [1,      hidden_size]
+        # num_mask:       [batch_size, num_size + constant_size]
+        # batch_graph:    [batch_size, 5, seq_len, seq_len]
+
     # Zero gradients of both optimizers
     encoder_optimizer.zero_grad()
     predict_optimizer.zero_grad()
@@ -689,70 +708,174 @@ def train_tree(input_batch, input_length, target_batch, target_length, nums_stac
     merge_optimizer.zero_grad()
     # Run words through encoder
 
+    # 1. encoder
+    # 在RNN Encoder之后接上一个batch_graph，即将图的信息融入网络中
+
+    # input_var(Tensor):    [seq_len, batch_size]
+    # input_length(list):   [batch_size]
+    # batch_graph(Tensor):  [batch_size, 5, seq_len, seq_len]
+
     encoder_outputs, problem_output = encoder(input_var, input_length, batch_graph)
+    # encoder_outputs: [seq_len, batch_size, hidden_size]
+    # problem_output:  [         batch_size, hidden_size]
+
     # Prepare input and output variables
+    # node_stacks: TreeNode, 记录节点node中的 goal vector q
     node_stacks = [[TreeNode(_)] for _ in problem_output.split(1, dim=0)]
 
+    # 最大的公式长度
     max_target_length = max(target_length)
 
     all_node_outputs = []
     # all_leafs = []
 
+    # numbers size
     copy_num_len = [len(_) for _ in num_pos]
+
+    # 文本中出现的数字个数
     num_size = max(copy_num_len)
+    print("num_size",num_size,copy_num_len)
+
+    # 取出文本中所有数字对应embedding
     all_nums_encoder_outputs = get_all_number_encoder_outputs(encoder_outputs, num_pos, batch_size, num_size,
                                                               encoder.hidden_size)
+    # all_nums_encoder_outputs: [batch_size, num_size, hidden_size]
 
+    # n_words:   output_lang.n_words   = 23
+    # num_start: output_lang.num_start = 5
     num_start = output_lang.num_start
+
+    # embedding_stacks: TreeEmbedding, 记录节点node之前的节点的subtree embedding t(list)
     embeddings_stacks = [[] for _ in range(batch_size)]
+
+    # left_childs: 记录节点node中当前节点的subtree embedding t
     left_childs = [None for _ in range(batch_size)]
+
+    # 先生成根节点，再生成左子树节点，最后生成右子树节点
     for t in range(max_target_length):
+        # 2. prediction
+        # encoder_outputs:          node representation(words)
+        # all_nums_encoder_outputs: node representation(numbers)
+
+        # encoder_outputs:          [seq_len,  batch_size, hidden_size]
+        # all_nums_encoder_outputs: [batch_size, num_size, hidden_size]
+        # padding_hidden:           [1,       hidden_size]
+        # seq_mask:                 [batch_size, seq_len]
+        # num_mask:                 [batch_size, num_size + constant_size]
         num_score, op, current_embeddings, current_context, current_nums_embeddings = predict(
             node_stacks, left_childs, encoder_outputs, all_nums_encoder_outputs, padding_hidden, seq_mask, num_mask)
+        # num_score:               [batch_size, num_size + constant_size]
+        # op:                      [batch_size,  operator_size]
+        # ** current GOAL VECTOR q
+        # current_embeddings:      [batch_size, 1, hidden_size]
+        # ** current CONTEXT VECTOR c
+        # current_context:         [batch_size, 1, hidden_size]
+        # ** current NUMBER EMBEDDING e(y|P)
+        # current_nums_embeddings: [batch_size, num_size + constant_size, hidden_size]
 
         # all_leafs.append(p_leaf)
         outputs = torch.cat((op, num_score), 1)
+        # outputs: [batch_size, operator_size + num_size + constant_size]
+
         all_node_outputs.append(outputs)
 
+        # 处理存在重复数字的情况
         target_t, generate_input = generate_tree_input(target[t].tolist(), outputs, nums_stack_batch, num_start, unk)
+        # target_t:       [batch_size]
+        # generate_input: [batch_size]
+
         target[t] = target_t
         if USE_CUDA:
             generate_input = generate_input.cuda()
+
+        # 3. generate (decompose goal vector q to q_l and q_r)
+        # current_embeddings: current goal    vector q
+        # current_context:    current context vector c
+        # generate_input:  => current token embedding e(y^|P)
+
+        # current_embeddings: [batch_size, 1, hidden_size]
+        # generate_input:     [batch_size]
+        # current_context:    [batch_size, 1, hidden_size]
+        # 只适用于预测操作符时，将goal vector分解
         left_child, right_child, node_label = generate(current_embeddings, generate_input, current_context)
+        # left_child:  h_l    = [batch_size,    hidden_size]
+        # right_child: h_r    = [batch_size,    hidden_size]
+        # node_label:  e(y|P) = [batch_size, embedding_size] (current node token embedding)
+
         left_childs = []
+        # 在每个batch中依次生成left_node, operator_node, right_node
         for idx, l, r, node_stack, i, o in zip(range(batch_size), left_child.split(1), right_child.split(1),
                                                node_stacks, target[t].tolist(), embeddings_stacks):
+
+
             if len(node_stack) != 0:
+                # 此时节点的goal vector q不为空，因此弹出该节点
                 node = node_stack.pop()
             else:
+                # 此时节点的goal vector q为空，说明整个公式已经预测完成
+                # batch_size: 2
+                # max_target_length: 7
+                # target_batch: [[2, 3, 7, 8, 5, (0), 0], [3, 1, 7, 0, 8, (9), 10]]
+                # target[t]: [0, 9]
+                # t: 5
                 left_childs.append(None)
                 continue
 
             if i < num_start:
+                # 生成的node为操作符
+
+                # 生成新的右孩子节点的h_r
+                # r.embedding: [1, hidden_size]
                 node_stack.append(TreeNode(r))
+
+                # 生成新的左孩子节点的h_l
+                # l.embedding: [1, hidden_size]
                 node_stack.append(TreeNode(l, left_flag=True))
+
+                # 更新非叶子节点的Tree embedding, 初始时为token embedding t
+                # embedding stacks
                 o.append(TreeEmbedding(node_label[idx].unsqueeze(0), False))
+                # sub_tree embedding (operator) = current_num: [1, embedding_size]
             else:
+                # 生成的node为操作数
                 try:
+                    # update sub tree embedding = t
                     current_num = current_nums_embeddings[idx, i - num_start].unsqueeze(0)
+                    # current_num: [1, hidden_size]
+
                 except:
                     print("i num_start",i,num_start)
                     print("shape",current_nums_embeddings.shape)
                     print("fail",current_nums_embeddings,idx,i - num_start,i,num_start)
+
+                # 通过左孩子节点和父节点的sub-tree embedding来更新右孩子节点的sub-tree embedding
                 while len(o) > 0 and o[-1].terminal:
-                    sub_stree = o.pop()
-                    op = o.pop()
+                    sub_stree = o.pop() # 左孩子节点
+                    op = o.pop() # 父节点
+                    # 更新叶子节点的Tree embedding
+                    # op.embedding:        [1, embedding_size]
+                    # sub_stree.embedding: [1,    hidden_size]
+                    # current_num:         [1,    hidden_size]
                     current_num = merge(op.embedding, sub_stree.embedding, current_num)
+                    # current_num: [1, hidden_size]
+
+                # embedding_stacks
                 o.append(TreeEmbedding(current_num, True))
-            if len(o) > 0 and o[-1].terminal:
+                # sub_tree embedding (number) = current_num: [1, hidden_size]
+
+            # 更新left_childs: left_childs记录所有的subtree embedding，并且在生成新节点时更新
+            if len(o) > 0 and o[-1].terminal: # 此时为叶子节点
                 left_childs.append(o[-1].embedding)
             else:
-                left_childs.append(None)
+                left_childs.append(None) # 此时为非叶子节点
 
     # all_leafs = torch.stack(all_leafs, dim=1)  # B x S x 2
     all_node_outputs = torch.stack(all_node_outputs, dim=1)  # B x S x N
+    # all_node_outputs: [batch_size, tgt_len, operator_size + num_size + constant_size]
 
     target = target.transpose(0, 1).contiguous()
+    # target: [batch_size, tgt_len]
+    
     if USE_CUDA:
         # all_leafs = all_leafs.cuda()
         all_node_outputs = all_node_outputs.cuda()

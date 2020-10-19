@@ -180,20 +180,40 @@ class EncoderSeq(nn.Module):
 
     def forward(self, input_seqs, input_lengths, batch_graph, hidden=None):
         # Note: we run this all at once (over multiple batches of multiple sequences)
+
+        # input_seqs:    [seq_len, batch_size]
+        # input_lengths: [batch_size]
+        # batch_graph:   [batch_size, 5, seq_len, seq_len]
+
         embedded = self.embedding(input_seqs)  # S x B x E
         embedded = self.em_dropout(embedded)
+        # embedded:   [seq_len, batch_size, embedding_size]
+
+
         packed = torch.nn.utils.rnn.pack_padded_sequence(embedded, input_lengths)
         pade_hidden = hidden
+
         pade_outputs, pade_hidden = self.gru_pade(packed, pade_hidden)
         pade_outputs, _ = torch.nn.utils.rnn.pad_packed_sequence(pade_outputs)
+        # pade_outputs: [seq_len,   batch_size, 2*hidden_size]
+        # pade_hidden:  [2*n_layer, batch_size,   hidden_size]
+
 
         problem_output = pade_outputs[-1, :, :self.hidden_size] + pade_outputs[0, :, self.hidden_size:]
         pade_outputs = pade_outputs[:, :, :self.hidden_size] + pade_outputs[:, :, self.hidden_size:]  # S x B x H
+        # problem_output: [batch_size, hidden_size]
+        # pade_outputs:   [seq_len, batch_size, hidden_size]
+
         _, pade_outputs = self.gcn(pade_outputs, batch_graph)
+        # pade_outputs: [batch_size, seq_len, hidden_size]
+
         pade_outputs = pade_outputs.transpose(0, 1)
+        # pade_outputs: [seq_len, batch_size, hidden_size]
+
         return pade_outputs, problem_output
 
 
+# 预测运算符和运算数的分类分数
 class Prediction(nn.Module):
     # a seq2tree decoder with Problem aware dynamic encoding
 
@@ -201,9 +221,9 @@ class Prediction(nn.Module):
         super(Prediction, self).__init__()
 
         # Keep for reference
-        self.hidden_size = hidden_size
-        self.input_size = input_size
-        self.op_nums = op_nums
+        self.hidden_size = hidden_size  # 512
+        self.input_size = input_size    # input_size: 2(数据集中出现的常数)
+        self.op_nums = op_nums          # op_nums:    5(数据集中的运算符个数)
 
         # Define layers
         self.dropout = nn.Dropout(dropout)
