@@ -647,7 +647,7 @@ def train_tree(input_batch, input_length, target_batch, target_length, nums_stac
     # sequence mask for attention
     seq_mask = []
     max_len = max(input_length)
-    print("max_len",max_len)
+    #print("max_len",max_len)
 
     #print("target_batch",target_batch)
 
@@ -661,7 +661,7 @@ def train_tree(input_batch, input_length, target_batch, target_length, nums_stac
     num_mask = []
     # max_num_size = num_size + constant_size
     max_num_size = max(num_size_batch) + len(generate_nums)
-    print("max_num_size",max_num_size,max(num_size_batch),len(generate_nums))
+    #print("max_num_size",max_num_size,max(num_size_batch),len(generate_nums))
     for i in num_size_batch:
         d = i + len(generate_nums)
         num_mask.append([0] * d + [1] * (max_num_size - d))
@@ -728,7 +728,7 @@ def train_tree(input_batch, input_length, target_batch, target_length, nums_stac
     # 最大的公式长度
     max_target_length = max(target_length)
 
-    print("target_len",max_target_length,target_length)
+    #print("target_len",max_target_length,target_length)
 
     all_node_outputs = []
     # all_leafs = []
@@ -738,7 +738,7 @@ def train_tree(input_batch, input_length, target_batch, target_length, nums_stac
 
     # 文本中出现的数字个数
     num_size = max(copy_num_len)
-    print("num_size",num_size,copy_num_len)
+    #print("num_size",num_size,copy_num_len)
 
     # 取出文本中所有数字对应embedding
     all_nums_encoder_outputs = get_all_number_encoder_outputs(encoder_outputs, num_pos, batch_size, num_size,
@@ -758,7 +758,7 @@ def train_tree(input_batch, input_length, target_batch, target_length, nums_stac
     # 先生成根节点，再生成左子树节点，最后生成右子树节点
     for t in range(max_target_length):
 
-        print("t",t)
+        #print("t",t)
         # 2. prediction
         # encoder_outputs:          node representation(words)
         # all_nums_encoder_outputs: node representation(numbers)
@@ -785,7 +785,7 @@ def train_tree(input_batch, input_length, target_batch, target_length, nums_stac
 
         all_node_outputs.append(outputs)
 
-        print("target t before", target[t])
+        #print("target t before", target[t])
 
         # 处理存在重复数字的情况
         target_t, generate_input = generate_tree_input(target[t].tolist(), outputs, nums_stack_batch, num_start, unk)
@@ -794,7 +794,7 @@ def train_tree(input_batch, input_length, target_batch, target_length, nums_stac
 
         target[t] = target_t
 
-        print("target t after",target[t])
+        #print("target t after",target[t])
         if USE_CUDA:
             generate_input = generate_input.cuda()
 

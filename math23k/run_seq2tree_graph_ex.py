@@ -185,7 +185,7 @@ def build_ape_data():
     print_lines("pairs",pairs[0:50])
 
     #temp_pairs=temp_pairs[448:]
-    temp_pairs = temp_pairs[450:]
+    #temp_pairs = temp_pairs[450:]
 
     train_fold, test_fold, valid_fold = split_by_lens(temp_pairs, [len(trains), len(tests), len(valids)])
 
