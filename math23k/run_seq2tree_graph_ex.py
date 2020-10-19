@@ -4,6 +4,7 @@ from src.models import *
 from src.pre_data import *
 import time
 import torch.optim
+import torch
 from src.expressions_transfer import *
 import json
 import argparse
@@ -240,6 +241,8 @@ train_pairs = model_info.build_langed_pairs(pairs_trained, "train")
 print("build test_pairs")
 test_pairs = model_info.build_langed_pairs(pairs_tested, "test")
 print("build pairs complete")
+
+#train_pairs=train_pairs[]
 # input_lang, output_lang, train_pairs, test_pairs = prepare_data(pairs_trained, pairs_tested, 5, generate_nums,copy_nums, tree=True)
 
 # print('train_pairs[0]')
@@ -387,6 +390,8 @@ def do_train():
         cur_index=0
 
         for train_small in train_big_batch:
+
+            torch.cuda.empty_cache()
 
             train_step+=step_count
 
