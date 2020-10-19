@@ -419,6 +419,8 @@ def do_train():
                 if idx % 5 == 0:
                     print("progress", idx, totallen, idx / totallen)
                     gc.collect()
+                if idx%5==0:
+                    torch.cuda.empty_cache()
 
             print("loss:", loss_total / len(input_lengths))
             print("training time", time_since(time.time() - start))
