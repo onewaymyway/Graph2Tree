@@ -242,6 +242,8 @@ print("build test_pairs")
 test_pairs = model_info.build_langed_pairs(pairs_tested, "test")
 print("build pairs complete")
 
+train_pairs=train_pairs[76800:]
+
 #train_pairs=train_pairs[]
 # input_lang, output_lang, train_pairs, test_pairs = prepare_data(pairs_trained, pairs_tested, 5, generate_nums,copy_nums, tree=True)
 
