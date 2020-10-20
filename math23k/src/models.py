@@ -243,10 +243,10 @@ class Prediction(nn.Module):
 
     def forward(self, node_stacks, left_childs, encoder_outputs, num_pades, padding_hidden, seq_mask, mask_nums):
         current_embeddings = []
-        print("Prediction")
-        print("node_stacks",len(node_stacks))
-        print("left_childs", len(left_childs))
-        print("encoder_outputs", encoder_outputs.shape)
+        #print("Prediction")
+        #print("node_stacks",len(node_stacks))
+        #print("left_childs", len(left_childs))
+        #print("encoder_outputs", encoder_outputs.shape)
 
         for st in node_stacks:
             if len(st) == 0:
