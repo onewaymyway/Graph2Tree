@@ -429,6 +429,7 @@ def do_train():
             print("training time", time_since(time.time() - start))
             print("progress_big:",train_step,total_step,train_step/total_step)
             print("--------------------------------")
+        save_params()
         if epoch % 2 == 0 or epoch > n_epochs - 5:
 
             equation_ac, value_ac, eval_total = do_eval()
