@@ -20,6 +20,7 @@ parser.add_argument("--batch_size", type=int, default=64, help="Total examples' 
 parser.add_argument("--num_epoch", type=int, default=80, help="Number of epoches for fine-tuning.")
 parser.add_argument("--if_train", type=ast.literal_eval, default=True, help="if_train")
 parser.add_argument("--if_eval", type=ast.literal_eval, default=True, help="if_eval")
+parser.add_argument("--if_loadpreparam", type=ast.literal_eval, default=False, help="if_loadpreparam")
 parser.add_argument("--do_recover_lang", type=ast.literal_eval, default=False, help="do_recover_lang")
 parser.add_argument("--do_save_lang", type=ast.literal_eval, default=True, help="do_save_lang")
 args = parser.parse_args()
@@ -51,6 +52,8 @@ model_root = args.model_root
 
 if_train = args.if_train
 if_eval = args.if_eval
+
+if_loadpreparam=args.if_loadpreparam
 
 do_recover_lang = args.do_recover_lang
 do_save_lang = args.do_save_lang
@@ -329,6 +332,9 @@ generate_scheduler = model_info.generate_scheduler
 merge_scheduler = model_info.merge_scheduler
 
 if not if_train:
+    if_loadpreparam=True
+    
+if if_loadpreparam:
     load_pre_params()
 
 # Move models to GPU
