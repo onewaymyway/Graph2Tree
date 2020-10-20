@@ -728,7 +728,7 @@ def train_tree(input_batch, input_length, target_batch, target_length, nums_stac
     # 最大的公式长度
     max_target_length = max(target_length)
 
-    #print("target_len",max_target_length,target_length)
+    print("target_len",max_target_length,target_length)
 
     all_node_outputs = []
     # all_leafs = []
@@ -758,7 +758,7 @@ def train_tree(input_batch, input_length, target_batch, target_length, nums_stac
     # 先生成根节点，再生成左子树节点，最后生成右子树节点
     for t in range(max_target_length):
 
-        #print("t",t)
+        print("t",t)
         # 2. prediction
         # encoder_outputs:          node representation(words)
         # all_nums_encoder_outputs: node representation(numbers)

@@ -223,6 +223,11 @@ class ModelInfo:
             num_stack.reverse()
             if not isOK:
                 continue
+            if len(pair[1]) > 150:
+                print("skip long")
+                print(pair)
+                print(pair[1])
+                continue
             input_cell = indexes_from_sentence(input_lang, pair[0])
             output_cell = indexes_from_sentence(output_lang, pair[1], tree)
             # train_pairs.append((input_cell, len(input_cell), output_cell, len(output_cell),
