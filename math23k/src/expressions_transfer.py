@@ -120,7 +120,7 @@ def out_expression_list(test, output_lang, num_list, num_stack=None):
                 res.append(c)
             except:
                 print("fail find pos",test,num_list,pos_list)
-                res.append(-1)
+                return None
 
     return res
 
