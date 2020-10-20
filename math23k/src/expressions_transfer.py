@@ -114,9 +114,14 @@ def out_expression_list(test, output_lang, num_list, num_stack=None):
             else:
                 res.append(idx)
         else:
-            pos_list = num_stack.pop()
-            c = num_list[pos_list[0]]
-            res.append(c)
+            try:
+                pos_list = num_stack.pop()
+                c = num_list[pos_list[0]]
+                res.append(c)
+            except:
+                print("fail find pos",test,num_list,pos_list)
+                res.append(-1)
+
     return res
 
 
