@@ -333,7 +333,7 @@ merge_scheduler = model_info.merge_scheduler
 
 if not if_train:
     if_loadpreparam=True
-    
+
 if if_loadpreparam:
     load_pre_params()
 
