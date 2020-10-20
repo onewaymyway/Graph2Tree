@@ -181,6 +181,7 @@ def build_ape_data():
         pfix=from_infix_to_prefix(p[1])
         #if "." in pfix:
         #   continue
+
         temp_pairs.append((p[0], pfix, p[2], p[3], create_group(p[0], p[3])))
     pairs = temp_pairs
     print_lines("pairs",pairs[0:50])
