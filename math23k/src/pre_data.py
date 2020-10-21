@@ -4,6 +4,7 @@ import copy
 import re
 import numpy as np
 from aiutils.fileutils import saveJsonFile,readJsonFile,ensure_dir
+import torch
 
 PAD_token = 0
 
