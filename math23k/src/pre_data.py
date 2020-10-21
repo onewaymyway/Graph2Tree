@@ -132,6 +132,28 @@ class ModelInfo:
         ensure_dir(file_path)
         self.lang_path=file_path+"/lang.json"
 
+    def load_pre_params(self,USE_CUDA=False):
+        print("load_pre_params", USE_CUDA)
+        model_root=self.base_path
+        if USE_CUDA:
+            self.encoder.load_state_dict(torch.load(model_root + "/encoder"))
+            self.predict.load_state_dict(torch.load(model_root + "/predict"))
+            self.generate.load_state_dict(torch.load(model_root + "/generate"))
+            self.merge.load_state_dict(torch.load(model_root + "/merge"))
+        else:
+            self.encoder.load_state_dict(torch.load(model_root + "/encoder", map_location=torch.device('cpu')))
+            self.predict.load_state_dict(torch.load(model_root + "/predict", map_location=torch.device('cpu')))
+            self.generate.load_state_dict(torch.load(model_root + "/generate", map_location=torch.device('cpu')))
+            mself.erge.load_state_dict(torch.load(model_root + "/merge", map_location=torch.device('cpu')))
+
+    def save_params(self):
+        print("save_params")
+        model_root = self.base_path
+        torch.save(self.encoder.state_dict(), model_root + "/encoder")
+        torch.save(self.predict.state_dict(), model_root + "/predict")
+        torch.save(self.enerate.state_dict(), model_root + "/generate")
+        torch.save(self.merge.state_dict(), model_root + "/merge")
+
     def save_lang(self):
 
         print("save lang to ", self.lang_path)
