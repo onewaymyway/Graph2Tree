@@ -145,7 +145,7 @@ class ModelInfo:
             self.encoder.load_state_dict(torch.load(model_root + "/encoder", map_location=torch.device('cpu')))
             self.predict.load_state_dict(torch.load(model_root + "/predict", map_location=torch.device('cpu')))
             self.generate.load_state_dict(torch.load(model_root + "/generate", map_location=torch.device('cpu')))
-            mself.erge.load_state_dict(torch.load(model_root + "/merge", map_location=torch.device('cpu')))
+            self.merge.load_state_dict(torch.load(model_root + "/merge", map_location=torch.device('cpu')))
 
     def save_params(self):
         print("save_params")
