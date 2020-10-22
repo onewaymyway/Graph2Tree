@@ -439,6 +439,9 @@ def do_train():
         if epoch % 2 == 0 or epoch > n_epochs - 5:
 
             equation_ac, value_ac, eval_total = do_eval()
+            f=open(model_root+"/last.txt","a",encoding="utf8")
+            f.write("acc "+str(equation_ac)+" "+str(value_ac)+"\n")
+            f.close()
             print("------------------------------------------------------")
             save_params()
             if epoch == n_epochs - 1:
