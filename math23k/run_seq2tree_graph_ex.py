@@ -440,7 +440,7 @@ def do_train():
 
             equation_ac, value_ac, eval_total = do_eval()
             f=open(model_root+"/last.txt","a",encoding="utf8")
-            f.write("acc "+str(equation_ac)+" "+str(value_ac)+"\n")
+            f.write("acc "+str(float(equation_ac) / eval_total)+" "+str(float(value_ac) / eval_total)+"\n")
             f.close()
             print("------------------------------------------------------")
             save_params()
